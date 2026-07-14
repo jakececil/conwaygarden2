@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07090d" />
+  <title>Conway's Garden — Living Ecology</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#050608;
+      --panel:#0b0e14;
+      --panel2:#101522;
+      --ink:#e7edff;
+      --dim:#8f9ab7;
+      --accent:#7ee7ff;
+      --accent2:#ff83d7;
+      --border:#222a3c;
+      --shadow:#000a;
+      --sidebar:312px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;overflow:hidden;background:#000;color:var(--ink);font:13px/1.35 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input,select{font:inherit}
+    button,select,input[type="color"]{color:var(--ink);background:#111725;border:1px solid var(--border);border-radius:9px}
+    button{padding:7px 9px;cursor:pointer;transition:filter .15s,transform .08s}
+    button:hover{filter:brightness(1.12)}
+    button:active{transform:translateY(1px)}
+    button.primary{background:linear-gradient(180deg,#1c2741,#12192b);border-color:#334464}
+    button.active{box-shadow:inset 0 0 0 1px var(--accent);color:#fff}
+    select{width:100%;padding:6px 8px}
+    input[type="range"]{width:142px;accent-color:var(--accent)}
+    input[type="checkbox"]{accent-color:var(--accent)}
+    input[type="color"]{width:34px;height:27px;padding:2px;cursor:pointer}
+    .app{position:fixed;inset:0;display:grid;grid-template-columns:var(--sidebar) 1fr;background:#000}
+    aside{position:relative;z-index:10;overflow:auto;padding:12px 10px 18px;background:linear-gradient(180deg,var(--panel),#080a10);border-right:1px solid var(--border);box-shadow:5px 0 25px var(--shadow);scrollbar-width:thin}
+    .brand{display:flex;align-items:center;gap:8px;font-weight:780;letter-spacing:.25px;font-size:15px}
+    .orb{width:12px;height:12px;border-radius:50%;background:conic-gradient(#7ff,#8f8,#ff8,#f88,#f8f,#88f,#7ff);box-shadow:0 0 18px #7ff8}
+    .sub{color:var(--dim);font-size:11.5px;margin:4px 0 10px}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+    .toolbar .wide{grid-column:1/-1}
+    details{border:1px solid var(--border);border-radius:11px;margin:7px 0;background:#0b0f18cc;overflow:hidden}
+    summary{cursor:pointer;user-select:none;padding:8px 9px;color:var(--accent);font-weight:680;list-style:none;display:flex;justify-content:space-between;align-items:center}
+    summary::-webkit-details-marker{display:none}
+    summary::after{content:"＋";color:var(--dim)}
+    details[open] summary::after{content:"−"}
+    .group{padding:0 9px 9px}
+    label.ctrl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:7px 0}
+    .ctrl span:first-child{min-width:0}
+    output{color:var(--dim);font-variant-numeric:tabular-nums;font-size:11px;margin-left:5px}
+    .inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .color-grid{display:grid;grid-template-columns:1fr auto;gap:6px 8px;align-items:center}
+    .hint{color:var(--dim);font-size:11px;margin-top:6px}
+    .toggle-row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:7px 0}
+    main{position:relative;min-width:0;min-height:0;background:#000;touch-action:none}
+    #stage{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;cursor:crosshair}
+    #hud{position:absolute;right:9px;bottom:8px;max-width:min(560px,calc(100% - 18px));padding:6px 8px;border:1px solid #2a344b;border-radius:10px;background:#02040ac7;backdrop-filter:blur(7px);font-size:11px;color:#dce7ff;pointer-events:none;font-variant-numeric:tabular-nums}
+    #eventToast{position:absolute;left:50%;top:14px;transform:translate(-50%,-10px);opacity:0;transition:.35s;padding:7px 10px;border-radius:999px;background:#050914d9;border:1px solid #31415f;color:#ecf4ff;pointer-events:none;font-size:12px;box-shadow:0 10px 30px #0008}
+    #eventToast.show{opacity:1;transform:translate(-50%,0)}
+    #mobileControls{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;border-radius:999px;padding:9px 13px;background:#111827e8;box-shadow:0 12px 35px #000b}
+    .footer-note{color:#67728e;font-size:10.5px;margin:9px 2px 0}
+    @media (max-width:900px){
+      .app{grid-template-columns:1fr}
+      aside{position:fixed;inset:0 auto 0 0;width:min(88vw,var(--sidebar));transform:translateX(-105%);transition:transform .22s ease;box-shadow:12px 0 36px #000c;padding-bottom:84px}
+      body.controls-open aside{transform:translateX(0)}
+      body.controls-open::after{content:"";position:fixed;inset:0;background:#0008;z-index:5}
+      #mobileControls{display:block}
+      #hud{bottom:64px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside id="panel">
+      <div class="brand"><span class="orb"></span> Conway's Garden: Living Ecology</div>
+      <div class="sub">A self-restarting, rule-mutating food web. Every organism carries a tiny heritable variation of its species' law.</div>
+
+      <div class="toolbar">
+        <button id="play" class="primary wide">⏸ Pause</button>
+        <button id="spark">✦ Spark</button>
+        <button id="newReality">✧ New Reality</button>
+        <button id="reseedFood">Re-seed Food</button>
+        <button id="clearLife">Clear Life</button>
+      </div>
+
+      <details open>
+        <summary>World</summary>
+        <div class="group">
+          <label class="ctrl"><span>Ecology preset</span><select id="ecologyPreset">
+            <option value="polyphony">Polyphonic Garden</option>
+            <option value="coral">Coral Parliament</option>
+            <option value="predator">Cyclic Predators</option>
+            <option value="mutation">Mutation Weather</option>
+            <option value="crystal">Crystal Ash</option>
+            <option value="classic">Classic Solitude</option>
+          </select></label>
+          <label class="ctrl"><span>Species</span><span><input id="speciesCount" type="range" min="1" max="4" step="1" value="4"><output></output></span></label>
+          <label class="ctrl"><span>Speed</span><span><input id="speed" type="range" min="4" max="50" step="1" value="24"><output></output></span></label>
+          <label class="ctrl"><span>Cell size</span><span><input id="cellSize" type="range" min="2" max="9" step="1" value="4"><output></output></span></label>
+          <label class="ctrl"><span>Initial density</span><span><input id="density" type="range" min="2" max="52" step="1" value="16"><output></output></span></label>
+          <div class="toggle-row"><span>Wrap edges</span><input id="wrapEdges" type="checkbox" checked></div>
+          <label class="ctrl"><span>Afterimage</span><span><input id="afterimage" type="range" min="0" max="100" value="32"><output></output></span></label>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Resources & Conflict</summary>
+        <div class="group">
+          <label class="ctrl"><span>Food abundance</span><span><input id="foodAbundance" type="range" min="0" max="100" value="64"><output></output></span></label>
+          <label class="ctrl"><span>Food regrowth</span><span><input id="foodGrowth" type="range" min="0" max="100" value="42"><output></output></span></label>
+          <label class="ctrl"><span>Diffusion</span><span><input id="diffusion" type="range" min="0" max="100" value="34"><output></output></span></label>
+          <label class="ctrl"><span>Food decay</span><span><input id="foodDecay" type="range" min="0" max="100" value="5"><output></output></span></label>
+          <label class="ctrl"><span>Metabolism</span><span><input id="metabolism" type="range" min="0" max="100" value="38"><output></output></span></label>
+          <label class="ctrl"><span>Birth cost</span><span><input id="birthCost" type="range" min="0" max="100" value="35"><output></output></span></label>
+          <label class="ctrl"><span>Predation</span><span><input id="predation" type="range" min="0" max="100" value="24"><output></output></span></label>
+          <label class="ctrl"><span>Resource pulses</span><span><input id="resourcePulse" type="range" min="0" max="100" value="24"><output></output></span></label>
+        </div>
+      </details>
+
+      <details>
+        <summary>Species Laboratory</summary>
+        <div class="group">
+          <label class="ctrl"><span>Edit species</span><select id="speciesEditor">
+            <option value="0">Species A</option><option value="1">Species B</option><option value="2">Species C</option><option value="3">Species D</option>
+          </select></label>
+          <label class="ctrl"><span>Rule family</span><select id="ruleFamily"></select></label>
+          <label class="ctrl"><span>Color</span><input id="speciesColor" type="color"></label>
+          <label class="ctrl"><span>Neighbor mixing</span><span><input id="socialMix" type="range" min="0" max="100" value="20"><output></output></span></label>
+          <label class="ctrl"><span>Aggression</span><span><input id="aggression" type="range" min="0" max="100" value="25"><output></output></span></label>
+          <label class="ctrl"><span>Vitality</span><span><input id="vitality" type="range" min="0" max="100" value="50"><output></output></span></label>
+          <div class="hint">Local cells inherit these laws, then bend them through mutation. Neighbor mixing decides whether a cell reads only kin or the whole crowd.</div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Autopilot</summary>
+        <div class="group">
+          <div class="toggle-row"><span>Ecology watchdog</span><input id="autoSpark" type="checkbox" checked></div>
+          <label class="ctrl"><span>Quiet time</span><span><input id="quietTime" type="range" min="2" max="30" step="1" value="7"><output></output></span></label>
+          <label class="ctrl"><span>Spark size</span><span><input id="sparkSize" type="range" min="1" max="18" value="7"><output></output></span></label>
+          <label class="ctrl"><span>Mutation rate</span><span><input id="mutationRate" type="range" min="0" max="100" value="18"><output></output></span></label>
+          <div class="toggle-row"><span>Rule-family drift</span><input id="ruleDrift" type="checkbox" checked></div>
+          <label class="ctrl"><span>Ecology wander</span><span><input id="ecologyWander" type="range" min="0" max="100" value="18"><output></output></span></label>
+          <div class="hint">The watchdog measures births, deaths, motion, population and species loss. When the garden goes inert, it performs a small brush-like intervention instead of resetting the world.</div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Color Engine</summary>
+        <div class="group">
+          <label class="ctrl"><span>Palette</span><select id="palettePreset">
+            <option value="jelly">Jelly Cathedral</option>
+            <option value="acid">Acid Orchard</option>
+            <option value="ember">Ember Archive</option>
+            <option value="bruise">Bruise Lagoon</option>
+            <option value="mineral">Mineral Radio</option>
+            <option value="custom">Custom</option>
+          </select></label>
+          <div class="color-grid">
+            <span>Species A / B</span><span><input id="color0" type="color"><input id="color1" type="color"></span>
+            <span>Species C / D</span><span><input id="color2" type="color"><input id="color3" type="color"></span>
+            <span>Food low / high</span><span><input id="foodLow" type="color"><input id="foodHigh" type="color"></span>
+            <span>Void</span><input id="voidColor" type="color">
+          </div>
+          <label class="ctrl"><span>Saturation</span><span><input id="saturation" type="range" min="0" max="140" value="100"><output></output></span></label>
+          <label class="ctrl"><span>Brightness</span><span><input id="brightness" type="range" min="25" max="150" value="100"><output></output></span></label>
+          <label class="ctrl"><span>Hue wander</span><span><input id="hueWander" type="range" min="0" max="100" value="32"><output></output></span></label>
+          <label class="ctrl"><span>Spatial hue</span><span><input id="spatialHue" type="range" min="0" max="100" value="24"><output></output></span></label>
+        </div>
+      </details>
+
+      <details>
+        <summary>Brush & Capture</summary>
+        <div class="group">
+          <label class="ctrl"><span>Brush mode</span><select id="brushMode">
+            <option value="life">Paint life</option><option value="food">Paint food</option><option value="eraseLife">Erase life</option><option value="eraseFood">Erase food</option>
+          </select></label>
+          <label class="ctrl"><span>Brush species</span><select id="brushSpecies"><option value="0">Random species</option><option value="1">Species A</option><option value="2">Species B</option><option value="3">Species C</option><option value="4">Species D</option></select></label>
+          <label class="ctrl"><span>Brush radius</span><span><input id="brushSize" type="range" min="1" max="28" value="8"><output></output></span></label>
+          <div class="mini-grid">
+            <button id="savePng">Save PNG</button>
+            <button id="reset">Reset Defaults</button>
+          </div>
+          <div class="hint">Space: play/pause · R: spark · N: new reality · F: re-seed food · C: clear life</div>
+        </div>
+      </details>
+
+      <div class="footer-note">Single-file, dependency-free, desktop/mobile. Settings persist locally.</div>
+    </aside>
+
+    <main id="stageWrap">
+      <canvas id="stage"></canvas>
+      <div id="eventToast"></div>
+      <div id="hud">Initializing ecology…</div>
+    </main>
+  </div>
+  <button id="mobileControls">⚙ Controls</button>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- small utilities ----------
+  const $ = id => document.getElementById(id);
+  const clamp = (v,a,b) => v<a?a:(v>b?b:v);
+  const lerp = (a,b,t) => a+(b-a)*t;
+  const fract = n => n-Math.floor(n);
+  const noise2D = (x,y,seed=0) => fract(Math.sin(x*127.1+y*311.7+seed*74.77)*43758.5453123);
+  const chance = p => Math.random()<p;
+  const pick = arr => arr[(Math.random()*arr.length)|0];
+  const mask = counts => counts.reduce((m,n)=>m|(1<<n),0);
+  const matchMask = (m,n) => !!(m&(1<<clamp(n|0,0,8)));
+  const hexToRgb = hex => {
+    const n=parseInt(hex.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255];
+  };
+  const rgbToHsv = (r,g,b) => {
+    r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;
+    let h=0; if(d){ if(mx===r)h=60*(((g-b)/d)%6); else if(mx===g)h=60*((b-r)/d+2); else h=60*((r-g)/d+4); }
+    if(h<0)h+=360; return [h,mx?d/mx:0,mx];
+  };
+  const hsvToRgb = (h,s,v) => {
+    h=(h%360+360)%360;s=clamp(s,0,1);v=clamp(v,0,1);
+    const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c; let r=0,g=0,b=0;
+    if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
+    return [(r+m)*255,(g+m)*255,(b+m)*255];
+  };
+  const mixRgb = (a,b,t) => [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+
+  const RULES = {
+    life:       {name:'Life · B3/S23',       birth:mask([3]),       survive:mask([2,3])},
+    highlife:   {name:'HighLife · B36/S23',  birth:mask([3,6]),     survive:mask([2,3])},
+    coral:      {name:'Coral · B3/S45678',   birth:mask([3]),       survive:mask([4,5,6,7,8])},
+    seeds:      {name:'Seeds · B2/S∅',       birth:mask([2]),       survive:0},
+    maze:       {name:'Maze · B3/S12345',    birth:mask([3]),       survive:mask([1,2,3,4,5])},
+    daynight:   {name:'Day & Night',         birth:mask([3,6,7,8]), survive:mask([3,4,6,7,8])},
+    diamoeba:   {name:'Diamoeba',            birth:mask([3,5,6,7,8]),survive:mask([5,6,7,8])},
+    replicator: {name:'Replicator · B1357',  birth:mask([1,3,5,7]), survive:mask([1,3,5,7])},
+    anneal:     {name:'Anneal',               birth:mask([4,6,7,8]), survive:mask([3,5,6,7,8])},
+    twobytwo:   {name:'2×2 · B36/S125',       birth:mask([3,6]),     survive:mask([1,2,5])}
+  };
+  const RULE_KEYS = Object.keys(RULES);
+  const SAFE_DRIFT_RULES = ['life','highlife','coral','maze','daynight','twobytwo','anneal'];
+
+  const PALETTES = {
+    jelly:{species:['#74f7ff','#ff6edb','#a7ff62','#8c78ff'],foodLow:'#061126',foodHigh:'#16c6c8',void:'#01030a'},
+    acid:{species:['#d6ff00','#ff3ab8','#2effa4','#ff8a00'],foodLow:'#13021a',foodHigh:'#b9ff18',void:'#050006'},
+    ember:{species:['#fff1a8','#ff8a2a','#ff3b2f','#9b5cff'],foodLow:'#100607',foodHigh:'#a12a14',void:'#020101'},
+    bruise:{species:['#bca7ff','#ff72ad','#69c7ff','#67ffd1'],foodLow:'#090718',foodHigh:'#4b2d76',void:'#020108'},
+    mineral:{species:['#90ffdf','#ffcf80','#9eb7ff','#f4f0ff'],foodLow:'#071316',foodHigh:'#3c8d78',void:'#020606'}
+  };
+
+  const PRESETS = {
+    polyphony:{count:4,rules:['life','highlife','coral','twobytwo'],mix:[.08,.18,.22,.30],agg:[.18,.26,.12,.20],vit:[.52,.50,.60,.54],predation:.22,mutation:.16,density:.16,palette:'jelly'},
+    coral:{count:4,rules:['coral','maze','highlife','twobytwo'],mix:[.12,.30,.20,.42],agg:[.06,.08,.12,.05],vit:[.68,.56,.52,.62],predation:.07,mutation:.10,density:.20,palette:'mineral'},
+    predator:{count:4,rules:['life','highlife','life','highlife'],mix:[.12,.12,.12,.12],agg:[.82,.76,.84,.72],vit:[.50,.52,.48,.54],predation:.72,mutation:.13,density:.27,palette:'acid'},
+    mutation:{count:4,rules:['life','maze','twobytwo','highlife'],mix:[.42,.55,.34,.68],agg:[.28,.22,.33,.18],vit:[.50,.56,.48,.52],predation:.22,mutation:.64,density:.24,palette:'bruise'},
+    crystal:{count:3,rules:['seeds','diamoeba','anneal','coral'],mix:[.15,.08,.25,.2],agg:[.08,.16,.08,.1],vit:[.46,.64,.58,.52],predation:.12,mutation:.22,density:.16,palette:'ember'},
+    classic:{count:1,rules:['life','life','life','life'],mix:[0,0,0,0],agg:[0,0,0,0],vit:[.52,.52,.52,.52],predation:0,mutation:.05,density:.24,palette:'jelly'}
+  };
+
+  const canvas=$('stage'), ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
+  const hud=$('hud'), toast=$('eventToast'), stageWrap=$('stageWrap');
+  let W=0,H=0,N=0,imageData=null;
+  let speciesA, speciesB, ageA, ageB, traitA, traitB, foodA, foodB, memoryA, memoryB;
+  let running=true,lastFrame=performance.now(),accumulator=0,lastHud=0,fps=0,frames=0;
+  let worldSeed=Math.random()*10000, stepCounter=0, pulseClock=0, quietClock=0, driftClock=0, wanderPhase=Math.random()*Math.PI*2;
+  let eventText='';
+  let metrics={alive:0,changed:0,births:0,deaths:0,activity:1,food:.5,species:[0,0,0,0],present:0};
+  let previousAlive=0;
+  const speciesAbsence=[0,0,0,0];
+
+  const controls = {};
+  ['play','spark','newReality','reseedFood','clearLife','ecologyPreset','speciesCount','speed','cellSize','density','wrapEdges','afterimage',
+   'foodAbundance','foodGrowth','diffusion','foodDecay','metabolism','birthCost','predation','resourcePulse','speciesEditor','ruleFamily','speciesColor',
+   'socialMix','aggression','vitality','autoSpark','quietTime','sparkSize','mutationRate','ruleDrift','ecologyWander','palettePreset','color0','color1',
+   'color2','color3','foodLow','foodHigh','voidColor','saturation','brightness','hueWander','spatialHue','brushMode','brushSpecies','brushSize','savePng','reset','mobileControls']
+   .forEach(id=>controls[id]=$(id));
+
+  Object.entries(RULES).forEach(([key,r])=>{
+    const o=document.createElement('option');o.value=key;o.textContent=r.name;controls.ruleFamily.appendChild(o);
+  });
+
+  const state = {
+    speciesCount:4,speed:24,cellSize:4,density:.16,wrap:true,afterimage:.32,
+    foodAbundance:.64,foodGrowth:.055,diffusion:.11,foodDecay:.0012,metabolism:.075,birthCost:.075,predation:.24,resourcePulse:.24,
+    mutationRate:.18,autoSpark:true,quietTime:7,sparkSize:7,ruleDrift:true,ecologyWander:.18,
+    palette:'jelly',colors:[...PALETTES.jelly.species],foodLow:PALETTES.jelly.foodLow,foodHigh:PALETTES.jelly.foodHigh,void:PALETTES.jelly.void,
+    saturation:1,brightness:1,hueWander:.32,spatialHue:.24,hueOffset:0,
+    brushMode:'life',brushSpecies:0,brushSize:8,
+    profiles:[0,1,2,3].map(i=>({rule:['life','highlife','coral','twobytwo'][i],mix:[.08,.18,.22,.30][i],aggression:[.18,.26,.12,.20][i],vitality:[.52,.50,.60,.54][i]}))
+  };
+
+  function slider01(el){return +el.value/100}
+  function mapControls(){
+    state.speciesCount=+controls.speciesCount.value;
+    state.speed=+controls.speed.value;
+    state.density=+controls.density.value/100;
+    state.wrap=controls.wrapEdges.checked;
+    state.afterimage=slider01(controls.afterimage);
+    state.foodAbundance=slider01(controls.foodAbundance);
+    // Nonlinear maps: the full slider is useful, but the dangerous region gets more physical space.
+    state.foodGrowth=.006 + Math.pow(slider01(controls.foodGrowth),1.8)*.23;
+    state.diffusion=Math.pow(slider01(controls.diffusion),1.45)*.34;
+    state.foodDecay=Math.pow(slider01(controls.foodDecay),2.15)*.11;
+    state.metabolism=.012 + Math.pow(slider01(controls.metabolism),1.7)*.36;
+    state.birthCost=.008 + Math.pow(slider01(controls.birthCost),1.65)*.30;
+    state.predation=slider01(controls.predation);
+    state.resourcePulse=slider01(controls.resourcePulse);
+    state.autoSpark=controls.autoSpark.checked;
+    state.quietTime=+controls.quietTime.value;
+    state.sparkSize=+controls.sparkSize.value;
+    state.mutationRate=Math.pow(slider01(controls.mutationRate),1.65);
+    state.ruleDrift=controls.ruleDrift.checked;
+    state.ecologyWander=slider01(controls.ecologyWander);
+    state.saturation=+controls.saturation.value/100;
+    state.brightness=+controls.brightness.value/100;
+    state.hueWander=slider01(controls.hueWander);
+    state.spatialHue=slider01(controls.spatialHue);
+    state.brushMode=controls.brushMode.value;
+    state.brushSpecies=+controls.brushSpecies.value;
+    state.brushSize=+controls.brushSize.value;
+    state.colors=[controls.color0.value,controls.color1.value,controls.color2.value,controls.color3.value];
+    state.foodLow=controls.foodLow.value; state.foodHigh=controls.foodHigh.value; state.void=controls.voidColor.value;
+    writeOutputs();
+    persist();
+  }
+
+  function writeOutputs(){
+    const vals={speciesCount:state.speciesCount,speed:state.speed+' Hz',cellSize:controls.cellSize.value+' px',density:Math.round(state.density*100)+'%',afterimage:Math.round(state.afterimage*100)+'%',
+      foodAbundance:controls.foodAbundance.value+'%',foodGrowth:controls.foodGrowth.value+'%',diffusion:controls.diffusion.value+'%',foodDecay:controls.foodDecay.value+'%',metabolism:controls.metabolism.value+'%',birthCost:controls.birthCost.value+'%',predation:controls.predation.value+'%',resourcePulse:controls.resourcePulse.value+'%',
+      socialMix:controls.socialMix.value+'%',aggression:controls.aggression.value+'%',vitality:controls.vitality.value+'%',quietTime:state.quietTime+' s',sparkSize:state.sparkSize,mutationRate:controls.mutationRate.value+'%',ecologyWander:controls.ecologyWander.value+'%',
+      saturation:controls.saturation.value+'%',brightness:controls.brightness.value+'%',hueWander:controls.hueWander.value+'%',spatialHue:controls.spatialHue.value+'%',brushSize:state.brushSize};
+    Object.entries(vals).forEach(([id,v])=>{const out=controls[id]?.parentElement?.querySelector('output');if(out)out.textContent=v});
+  }
+
+  function syncSpeciesEditor(){
+    const i=+controls.speciesEditor.value,p=state.profiles[i];
+    controls.ruleFamily.value=p.rule;controls.speciesColor.value=state.colors[i];controls.socialMix.value=Math.round(p.mix*100);controls.aggression.value=Math.round(p.aggression*100);controls.vitality.value=Math.round(p.vitality*100);
+    writeOutputs();
+  }
+
+  function mapSpeciesEditor(){
+    const i=+controls.speciesEditor.value,p=state.profiles[i];
+    p.rule=controls.ruleFamily.value;
+    p.mix=slider01(controls.socialMix);
+    p.aggression=slider01(controls.aggression);
+    p.vitality=slider01(controls.vitality);
+    controls['color'+i].value=controls.speciesColor.value;
+    mapControls();
+  }
+
+  function applyPalette(name){
+    if(name==='custom')return;
+    const p=PALETTES[name];state.palette=name;
+    p.species.forEach((c,i)=>controls['color'+i].value=c);
+    controls.foodLow.value=p.foodLow;controls.foodHigh.value=p.foodHigh;controls.voidColor.value=p.void;
+    controls.speciesColor.value=p.species[+controls.speciesEditor.value];
+    mapControls();
+  }
+
+  function applyPreset(name,seed=true){
+    const p=PRESETS[name];
+    controls.speciesCount.value=p.count;controls.predation.value=Math.round(p.predation*100);controls.mutationRate.value=Math.round(Math.pow(p.mutation,1/1.65)*100);controls.density.value=Math.round(p.density*100);
+    for(let i=0;i<4;i++)state.profiles[i]={rule:p.rules[i],mix:p.mix[i],aggression:p.agg[i],vitality:p.vit[i]};
+    controls.palettePreset.value=p.palette;applyPalette(p.palette);syncSpeciesEditor();mapControls();
+    if(seed){randomizeLife(state.density);seedFoodField();announce(PRESETS[name]===PRESETS.classic?'The garden remembers one law.':'Ecology installed: '+controls.ecologyPreset.selectedOptions[0].textContent)}
+  }
+
+  function resizeGrid(preserve=true){
+    const cell=+controls.cellSize.value;
+    state.cellSize=cell;
+    const rect=stageWrap.getBoundingClientRect();
+    const newW=Math.max(8,Math.floor(rect.width/cell)),newH=Math.max(8,Math.floor(rect.height/cell));
+    if(newW===W&&newH===H)return;
+    const old={W,H,speciesA,ageA,traitA,foodA,memoryA};
+    W=newW;H=newH;N=W*H;canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;imageData=ctx.createImageData(W,H);
+    speciesA=new Uint8Array(N);speciesB=new Uint8Array(N);ageA=new Uint16Array(N);ageB=new Uint16Array(N);traitA=new Uint8Array(N);traitB=new Uint8Array(N);
+    foodA=new Float32Array(N);foodB=new Float32Array(N);memoryA=new Uint8Array(N);memoryB=new Uint8Array(N);
+    if(preserve&&old.speciesA&&old.W){
+      const cw=Math.min(W,old.W),ch=Math.min(H,old.H);
+      for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){
+        const ni=y*W+x,oi=y*old.W+x;speciesA[ni]=old.speciesA[oi];ageA[ni]=old.ageA[oi];traitA[ni]=old.traitA[oi];foodA[ni]=old.foodA[oi];memoryA[ni]=old.memoryA[oi];
+      }
+    }else{seedFoodField();randomizeLife(state.density)}
+  }
+
+  function idx(x,y){return y*W+x}
+  function coords(i){return [i%W,(i/W)|0]}
+  function wrapped(x,max){return (x+max)%max}
+
+  function seedFoodField(){
+    worldSeed=Math.random()*10000;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const n=.52*noise2D(x*.082,y*.071,worldSeed)+.30*noise2D(x*.029,y*.033,worldSeed+3)+.18*noise2D(x*.009,y*.012,worldSeed+9);
+      const basin=Math.pow(n,.72);foodA[idx(x,y)]=clamp(.02+basin*state.foodAbundance,0,1);
+    }
+    announce('A new resource geography condenses.');
+  }
+
+  function randomizeLife(density=state.density){
+    speciesA.fill(0);ageA.fill(0);traitA.fill(128);memoryA.fill(0);
+    for(let i=0;i<N;i++)if(chance(density)){
+      speciesA[i]=1+((Math.random()*state.speciesCount)|0);ageA[i]=1+((Math.random()*18)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=220;
+    }
+    quietClock=0;
+  }
+
+  function clearLife(){speciesA.fill(0);ageA.fill(0);memoryA.fill(0);quietClock=0;announce('The organisms vanish; the food field remains.');}
+
+  function localFoodHotspot(){
+    let best=(Math.random()*N)|0,bestScore=-1;
+    for(let k=0;k<64;k++){const i=(Math.random()*N)|0;const score=foodA[i]+Math.random()*.38;if(score>bestScore){best=i;bestScore=score}}
+    return coords(best);
+  }
+
+  function stampLife(cx,cy,r=state.sparkSize,forced=0,soft=true){
+    const r2=r*r;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r2||!chance(soft?.38:.72))continue;
+      let x=cx+dx,y=cy+dy;
+      if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
+      const i=idx(x,y),s=forced||1+((Math.random()*state.speciesCount)|0);
+      speciesA[i]=s;ageA[i]=1+((Math.random()*8)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=255;
+    }
+  }
+
+  function spark(reason='manual spark'){
+    const [x,y]=localFoodHotspot();
+    stampLife(x,y,state.sparkSize,0,true);
+    // A tiny food puncture makes the intervention resemble a tap rather than a reset.
+    for(let k=0;k<Math.max(4,state.sparkSize);k++){
+      const xx=wrapped(x+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,W),yy=wrapped(y+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,H);
+      foodA[idx(xx,yy)]=clamp(foodA[idx(xx,yy)]+.18,0,1);
+    }
+    quietClock=0;announce(reason==='manual spark'?'A fingertip disturbs the garden.':reason);
+  }
+
+  function pulseResources(){
+    const hits=Math.max(6,(N*(.00035+state.resourcePulse*.0022))|0);
+    for(let k=0;k<hits;k++){
+      const i=(Math.random()*N)|0;foodA[i]=clamp(foodA[i]+.12+Math.random()*.28,0,1);
+    }
+  }
+
+  function neighborIndex(x,y){
+    if(state.wrap)return idx(wrapped(x,W),wrapped(y,H));
+    if(x<0||x>=W||y<0||y>=H)return -1;
+    return idx(x,y);
+  }
+
+  function effectiveRuleMatch(ruleMask,nSame,nTotal,trait,mix,birth){
+    // Each cell's genome changes how it interprets the shared rule: kin-only ↔ crowd-aware,
+    // plus a heritable ±1 neighbor bias. This is local rule heterogeneity, not just color variation.
+    const geneMix=clamp(mix + ((trait&31)/31-.5)*.26,0,1);
+    let n=Math.round(lerp(nSame,nTotal,geneMix));
+    const geneBand=trait>>5;
+    const bias=geneBand===0?-1:(geneBand===7?1:0); // only the genomic extremes reinterpret count by one
+    n=clamp(n+bias,0,8);
+    return matchMask(ruleMask,n);
+  }
+
+  function stepSimulation(dt){
+    stepCounter++;
+    const wander=state.ecologyWander;
+    wanderPhase+=dt*(.045+.12*wander);
+    const ecologicalBreath=Math.sin(wanderPhase)*wander;
+    const growth=state.foodGrowth*(1+.22*ecologicalBreath);
+    const metabolism=state.metabolism*(1-.12*ecologicalBreath);
+    const diffusion=clamp(state.diffusion*(1+.18*Math.sin(wanderPhase*.61+2)),0,.48);
+
+    // Resource field: stable against speed changes because all rates are expressed per second.
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const i=idx(x,y),f=foodA[i];
+      let sum=0,count=0;
+      const near=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
+      for(const [nx,ny] of near){const ni=neighborIndex(nx,ny);if(ni>=0){sum+=foodA[ni];count++}}
+      const avg=count?sum/count:f;
+      const environmental=.5+.5*noise2D(x*.017+stepCounter*.0003,y*.021,worldSeed+17);
+      const source=growth*dt*(1-f)*(.32+.68*environmental);
+      foodB[i]=clamp(lerp(f,avg,diffusion)+source-state.foodDecay*dt*f,0,1);
+    }
+    [foodA,foodB]=[foodB,foodA];
+
+    let alive=0,changed=0,births=0,deaths=0,foodSum=0;
+    const speciesCounts=[0,0,0,0];
+    const predationGlobal=state.predation;
+
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const i=idx(x,y),current=speciesA[i];
+      const counts=[0,0,0,0,0];
+      let total=0;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        if(!dx&&!dy)continue;const ni=neighborIndex(x+dx,y+dy);if(ni<0)continue;const s=speciesA[ni];if(s){counts[s]++;total++}
+      }
+      let next=0,nextAge=0,nextTrait=traitA[i],food=foodA[i];
+
+      if(current){
+        const p=state.profiles[current-1],r=RULES[p.rule],same=counts[current],trait=traitA[i];
+        const predator=current===1?state.speciesCount:current-1; // cyclic predator relation
+        const enemyPressure=counts[predator]||0;
+        const prey=current===state.speciesCount?1:current+1;
+        const preyNear=counts[prey]||0;
+        const vitality=.72+p.vitality*.56;
+        const individualMetabolism=metabolism*(.76+(trait/255)*.48)/vitality;
+        const predationGain=preyNear*predationGlobal*p.aggression*.018;
+        const survivalFood=.006+individualMetabolism*.12;
+        const survivesRule=effectiveRuleMatch(r.survive,same,total,trait,p.mix,false);
+        const overrun=enemyPressure*predationGlobal*(state.profiles[predator-1]?.aggression||0) > (1.55+p.vitality*2.4+Math.random()*1.1);
+        if(survivesRule && food+predationGain>survivalFood && !overrun){
+          next=current;nextAge=Math.min(65535,ageA[i]+1);food=clamp(food-individualMetabolism*dt+predationGain,0,1);
+          if(chance(state.mutationRate*dt*.065))nextTrait=clamp(trait+((Math.random()*33)|0)-16,0,255);
+        }else{deaths++}
+      }else{
+        let winner=0,best=-1,parentTrait=128;
+        for(let s=1;s<=state.speciesCount;s++){
+          const p=state.profiles[s-1],r=RULES[p.rule],same=counts[s];
+          if(!same)continue;
+          // Parent sample transmits the local genotype.
+          let sampled=128;
+          for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+            const ni=neighborIndex(x+dx,y+dy);if(ni>=0&&speciesA[ni]===s&&chance(.34))sampled=traitA[ni];
+          }
+          if(!effectiveRuleMatch(r.birth,same,total,sampled,p.mix,true))continue;
+          const prey=s===state.speciesCount?1:s+1;
+          const score=same*.25+counts[prey]*predationGlobal*p.aggression*.32+Math.random()*.22+p.vitality*.12;
+          if(score>best){best=score;winner=s;parentTrait=sampled}
+        }
+        if(winner){
+          const p=state.profiles[winner-1];
+          const need=state.birthCost*(1.18-p.vitality*.36);
+          if(food>need){
+            next=winner;nextAge=1;births++;food=clamp(food-need,0,1);
+            nextTrait=parentTrait;
+            if(chance(state.mutationRate*.55))nextTrait=clamp(parentTrait+((Math.random()*65)|0)-32,0,255);
+          }
+        }
+      }
+
+      speciesB[i]=next;ageB[i]=nextAge;traitB[i]=nextTrait;foodA[i]=food;
+      const mem=memoryA[i];memoryB[i]=next?255:Math.max(0,mem-(2+((1-state.afterimage)*19)|0));
+      if(next){alive++;speciesCounts[next-1]++}
+      if(next!==current)changed++;
+      foodSum+=food;
+    }
+
+    [speciesA,speciesB]=[speciesB,speciesA];[ageA,ageB]=[ageB,ageA];[traitA,traitB]=[traitB,traitA];[memoryA,memoryB]=[memoryB,memoryA];
+    const rawActivity=changed/N;
+    metrics.activity=lerp(metrics.activity,rawActivity,.16);
+    metrics={...metrics,alive,changed,births,deaths,food:foodSum/N,species:speciesCounts,present:speciesCounts.filter(Boolean).length};
+
+    // Rare food rain, scaled to the user's pulse control.
+    pulseClock+=dt;
+    const pulseInterval=lerp(9,1.2,state.resourcePulse);
+    if(pulseClock>pulseInterval){pulseClock=0;pulseResources()}
+
+    // Autopilot watches the actual ecology, not just a timer.
+    const populationFloor=Math.max(6,N*.0009);
+    const dull=metrics.activity<.00045 || alive<populationFloor || (previousAlive===alive && changed===0);
+    quietClock=dull?quietClock+dt:Math.max(0,quietClock-dt*.85);
+    previousAlive=alive;
+
+    let missingSpecies=-1;
+    for(let s=0;s<state.speciesCount;s++){
+      speciesAbsence[s]=speciesCounts[s]===0?speciesAbsence[s]+dt:0;
+      if(speciesAbsence[s]>Math.max(9,state.quietTime*1.6))missingSpecies=s;
+    }
+    if(state.autoSpark&&missingSpecies>=0){
+      const [sx,sy]=localFoodHotspot();
+      stampLife(sx,sy,Math.max(2,Math.round(state.sparkSize*.72)),missingSpecies+1,true);
+      speciesAbsence[missingSpecies]=0;quietClock=0;
+      announce(`Species ${'ABCD'[missingSpecies]} went locally extinct; a small immigrant lineage arrives.`);
+    }else if(state.autoSpark&&quietClock>state.quietTime){
+      const reason=alive<populationFloor?'The garden nearly empties; a small immigrant colony arrives.':'The ecology becomes too still; one quiet tap reopens possibility.';
+      spark(reason);
+    }
+
+    driftClock+=dt;
+    if(state.ruleDrift&&state.ecologyWander>0&&driftClock>lerp(120,28,state.ecologyWander)){
+      driftClock=0;
+      const s=(Math.random()*state.speciesCount)|0;
+      const old=state.profiles[s].rule;
+      let next=pick(SAFE_DRIFT_RULES);if(next===old)next=pick(SAFE_DRIFT_RULES);
+      state.profiles[s].rule=next;
+      if(+controls.speciesEditor.value===s)syncSpeciesEditor();
+      announce(`Species ${'ABCD'[s]} quietly adopts ${RULES[next].name}.`);
+    }
+  }
+
+  function adjustedColor(hex,hueShift=0,satMul=1,valMul=1){
+    const [r,g,b]=hexToRgb(hex),[h,s,v]=rgbToHsv(r,g,b);
+    return hsvToRgb(h+hueShift,s*state.saturation*satMul,v*state.brightness*valMul);
+  }
+
+  function render(now){
+    const data=imageData.data;
+    const low=hexToRgb(state.foodLow),high=hexToRgb(state.foodHigh),voidRgb=hexToRgb(state.void);
+    const autoHue=Math.sin(now*.000035)*110*state.hueWander + Math.sin(now*.000009+1.7)*35*state.hueWander;
+    state.hueOffset=autoHue;
+    let p=0;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const i=idx(x,y),s=speciesA[i],food=foodA[i],mem=memoryA[i]/255;
+      const spatial=((x/W)*52+(y/H)*31)*state.spatialHue;
+      let rgb;
+      if(s){
+        const age=ageA[i],trait=traitA[i];
+        const ageGlow=.78+.22*Math.tanh(age*.055);
+        const geneHue=((trait-128)/128)*24;
+        rgb=adjustedColor(state.colors[s-1],autoHue+spatial+geneHue,1,.84+ageGlow*.28);
+        const nourishment=clamp(food*.5,0,.28);rgb=mixRgb(rgb,high,nourishment);
+      }else{
+        const f=Math.pow(food,.68);
+        rgb=mixRgb(voidRgb,mixRgb(low,high,f),.20+.80*f);
+        if(mem>0){
+          const ghost=adjustedColor(state.colors[(traitA[i]>>6)%state.speciesCount],autoHue+spatial,.6,.42);
+          rgb=mixRgb(rgb,ghost,mem*state.afterimage*.58);
+        }
+      }
+      data[p++]=rgb[0];data[p++]=rgb[1];data[p++]=rgb[2];data[p++]=255;
+    }
+    ctx.putImageData(imageData,0,0);
+  }
+
+  function updateHud(now){
+    frames++;if(now-lastHud<500)return;
+    fps=Math.round(frames*1000/(now-lastHud||1));frames=0;lastHud=now;
+    const popPct=(metrics.alive/N*100).toFixed(1),act=(metrics.activity*100).toFixed(2),food=(metrics.food*100).toFixed(0);
+    const mix=metrics.species.slice(0,state.speciesCount).map((n,i)=>`${'ABCD'[i]} ${metrics.alive?Math.round(n/metrics.alive*100):0}%`).join(' · ');
+    hud.textContent=`${fps} FPS · ${W}×${H} · life ${popPct}% · activity ${act}% · food ${food}% · ${mix}${state.autoSpark?` · watchdog ${Math.max(0,state.quietTime-quietClock).toFixed(1)}s`:''}`;
+  }
+
+  function frame(now){
+    const dt=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
+    if(running){
+      accumulator+=dt;const step=1/state.speed;let guard=0;
+      while(accumulator>=step&&guard++<8){stepSimulation(step);accumulator-=step}
+    }
+    render(now);updateHud(now);requestAnimationFrame(frame);
+  }
+
+  function announce(text){
+    eventText=text;toast.textContent=text;toast.classList.add('show');
+    clearTimeout(announce.timer);announce.timer=setTimeout(()=>toast.classList.remove('show'),2600);
+  }
+
+  function togglePlay(){running=!running;controls.play.textContent=running?'⏸ Pause':'▶ Play';controls.play.classList.toggle('active',!running);}
+
+  function newReality(){
+    const preset=pick(Object.keys(PRESETS));controls.ecologyPreset.value=preset;
+    applyPreset(preset,false);
+    controls.foodAbundance.value=40+((Math.random()*46)|0);controls.foodGrowth.value=25+((Math.random()*46)|0);controls.diffusion.value=12+((Math.random()*56)|0);
+    controls.foodDecay.value=(Math.random()*22)|0;controls.metabolism.value=24+((Math.random()*38)|0);controls.birthCost.value=20+((Math.random()*42)|0);
+    controls.resourcePulse.value=10+((Math.random()*52)|0);controls.ecologyWander.value=8+((Math.random()*48)|0);controls.hueWander.value=10+((Math.random()*70)|0);controls.spatialHue.value=(Math.random()*70)|0;
+    mapControls();seedFoodField();randomizeLife(state.density);spark('A fresh reality snaps into coherence.');
+  }
+
+  function savePng(){
+    const a=document.createElement('a');a.download=`living-ecology-${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click();
+  }
+
+  function persist(){
+    try{
+      localStorage.setItem('livingEcologyV2',JSON.stringify({
+        values:Object.fromEntries(Object.entries(controls).filter(([,el])=>el&&('value'in el)).map(([k,el])=>[k,el.value])),
+        checks:Object.fromEntries(['wrapEdges','autoSpark','ruleDrift'].map(k=>[k,controls[k].checked])),profiles:state.profiles
+      }));
+    }catch(_){ }
+  }
+
+  function restore(){
+    try{
+      const saved=JSON.parse(localStorage.getItem('livingEcologyV2'));if(!saved)return false;
+      Object.entries(saved.values||{}).forEach(([k,v])=>{if(controls[k])controls[k].value=v});
+      Object.entries(saved.checks||{}).forEach(([k,v])=>{if(controls[k])controls[k].checked=v});
+      if(saved.profiles?.length===4)state.profiles=saved.profiles;
+      return true;
+    }catch(_){return false}
+  }
+
+  // ---------- interaction ----------
+  let drawing=false;
+  function pointerCell(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.clientX-r.left)/r.width*W),Math.floor((e.clientY-r.top)/r.height*H)]}
+  function paint(e){
+    const [cx,cy]=pointerCell(e),r=state.brushSize,r2=r*r;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r2)continue;let x=cx+dx,y=cy+dy;
+      if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
+      const i=idx(x,y);
+      if(state.brushMode==='life'){
+        const s=state.brushSpecies||1+((Math.random()*state.speciesCount)|0);speciesA[i]=s;ageA[i]=1;traitA[i]=(Math.random()*256)|0;memoryA[i]=255;
+      }else if(state.brushMode==='food')foodA[i]=clamp(foodA[i]+.16,0,1);
+      else if(state.brushMode==='eraseLife'){speciesA[i]=0;ageA[i]=0}
+      else foodA[i]=clamp(foodA[i]-.20,0,1);
+    }
+  }
+  canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture?.(e.pointerId);paint(e)});
+  canvas.addEventListener('pointermove',e=>{if(drawing)paint(e)});
+  window.addEventListener('pointerup',()=>drawing=false);
+  window.addEventListener('pointercancel',()=>drawing=false);
+
+  controls.play.addEventListener('click',togglePlay);
+  controls.spark.addEventListener('click',()=>spark());
+  controls.newReality.addEventListener('click',newReality);
+  controls.reseedFood.addEventListener('click',seedFoodField);
+  controls.clearLife.addEventListener('click',clearLife);
+  controls.savePng.addEventListener('click',savePng);
+  controls.reset.addEventListener('click',()=>{localStorage.removeItem('livingEcologyV2');location.reload()});
+  controls.ecologyPreset.addEventListener('change',()=>applyPreset(controls.ecologyPreset.value));
+  controls.palettePreset.addEventListener('change',()=>{state.palette=controls.palettePreset.value;applyPalette(controls.palettePreset.value)});
+  controls.speciesEditor.addEventListener('change',syncSpeciesEditor);
+  ['ruleFamily','speciesColor','socialMix','aggression','vitality'].forEach(id=>controls[id].addEventListener('input',mapSpeciesEditor));
+  ['color0','color1','color2','color3','foodLow','foodHigh','voidColor'].forEach(id=>controls[id].addEventListener('input',()=>{
+    controls.palettePreset.value='custom';state.palette='custom';
+    if(/^color[0-3]$/.test(id) && +controls.speciesEditor.value===+id.slice(-1))controls.speciesColor.value=controls[id].value;
+    mapControls();
+  }));
+  const resizeSensitive=new Set(['cellSize']);
+  Object.entries(controls).forEach(([id,el])=>{
+    if(!el||['ruleFamily','speciesColor','socialMix','aggression','vitality','color0','color1','color2','color3','foodLow','foodHigh','voidColor','ecologyPreset','palettePreset','speciesEditor'].includes(id))return;
+    if(el.matches?.('input,select'))el.addEventListener('input',()=>{mapControls();if(resizeSensitive.has(id))resizeGrid(true)});
+  });
+  controls.mobileControls.addEventListener('click',()=>document.body.classList.toggle('controls-open'));
+  stageWrap.addEventListener('pointerdown',e=>{if(document.body.classList.contains('controls-open')&&e.target!==canvas)document.body.classList.remove('controls-open')});
+  window.addEventListener('keydown',e=>{
+    if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
+    if(e.code==='Space'){e.preventDefault();togglePlay()}else if(e.key==='r'||e.key==='R')spark();else if(e.key==='n'||e.key==='N')newReality();else if(e.key==='f'||e.key==='F')seedFoodField();else if(e.key==='c'||e.key==='C')clearLife();
+  });
+  window.addEventListener('resize',()=>resizeGrid(true));
+
+  // ---------- init ----------
+  const restored=restore();
+  if(!restored){
+    const pal=PALETTES.jelly;pal.species.forEach((c,i)=>controls['color'+i].value=c);controls.foodLow.value=pal.foodLow;controls.foodHigh.value=pal.foodHigh;controls.voidColor.value=pal.void;
+  }
+  mapControls();
+  if(restored)syncSpeciesEditor();else applyPreset('polyphony',false);
+  resizeGrid(false);
+  seedFoodField();randomizeLife(state.density);
+  announce('The garden wakes and begins feeding.');
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
