@@ -60,6 +60,16 @@
     #eventToast.show{opacity:1;transform:translate(-50%,0)}
     #mobileControls{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;border-radius:999px;padding:9px 13px;background:#111827e8;box-shadow:0 12px 35px #000b}
     .footer-note{color:#67728e;font-size:10.5px;margin:9px 2px 0}
+    .lab-section{margin:9px 0 5px;padding-top:8px;border-top:1px solid #1b2231;color:#b8c5e4;font-size:11px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+    .neighbor-wrap{display:grid;grid-template-columns:1fr;gap:5px;margin:7px 0}
+    .neighbor-label{display:flex;justify-content:space-between;align-items:center;color:#cbd6f0;font-size:11px}
+    .neighbor-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}
+    .neighbor-btn{min-width:0;padding:5px 0;border-radius:6px;background:#0b101a;color:#68748f;border-color:#1c2537;font-size:10.5px}
+    .neighbor-btn.on{background:linear-gradient(180deg,#21415a,#162b3d);color:#eaffff;border-color:#42728c;box-shadow:inset 0 0 0 1px #79dff633}
+    .bias-readout{margin-top:8px;padding:7px 8px;border:1px solid #1d2a3e;border-radius:9px;background:#070b12;color:#91a2c7;font-size:10.5px;line-height:1.45}
+    .bias-readout strong{color:#dce8ff}
+    .legend-line{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px}
+    .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid #ffffff33}
     @media (max-width:900px){
       .app{grid-template-columns:1fr}
       aside{position:fixed;inset:0 auto 0 0;width:min(88vw,var(--sidebar));transform:translateX(-105%);transition:transform .22s ease;box-shadow:12px 0 36px #000c;padding-bottom:84px}
@@ -94,6 +104,7 @@
             <option value="mutation">Mutation Weather</option>
             <option value="crystal">Crystal Ash</option>
             <option value="classic">Classic Solitude</option>
+            <option value="custom">Custom / Generated Reality</option>
           </select></label>
           <label class="ctrl"><span>Species</span><span><input id="speciesCount" type="range" min="1" max="4" step="1" value="4"><output></output></span></label>
           <label class="ctrl"><span>Speed</span><span><input id="speed" type="range" min="4" max="50" step="1" value="24"><output></output></span></label>
@@ -115,6 +126,7 @@
           <label class="ctrl"><span>Birth cost</span><span><input id="birthCost" type="range" min="0" max="100" value="35"><output></output></span></label>
           <label class="ctrl"><span>Predation</span><span><input id="predation" type="range" min="0" max="100" value="24"><output></output></span></label>
           <label class="ctrl"><span>Resource pulses</span><span><input id="resourcePulse" type="range" min="0" max="100" value="24"><output></output></span></label>
+          <label class="ctrl"><span>Fossil weathering</span><span><input id="matterDecay" type="range" min="0" max="100" value="8"><output></output></span></label>
         </div>
       </details>
 
@@ -125,11 +137,27 @@
             <option value="0">Species A</option><option value="1">Species B</option><option value="2">Species C</option><option value="3">Species D</option>
           </select></label>
           <label class="ctrl"><span>Rule family</span><select id="ruleFamily"></select></label>
+          <div class="neighbor-wrap">
+            <div class="neighbor-label"><span>Birth neighbors (B)</span><span id="birthCode">B3</span></div>
+            <div class="neighbor-grid" id="birthGrid"></div>
+            <div class="neighbor-label"><span>Survival neighbors (S)</span><span id="surviveCode">S23</span></div>
+            <div class="neighbor-grid" id="surviveGrid"></div>
+          </div>
+          <div class="hint">The named families are presets, not separate engines: an empty cell is born when its interpreted neighbor count matches B; a living cell remains when it matches S. Editing either row creates a custom law.</div>
+          <div class="lab-section">Body & appetite</div>
           <label class="ctrl"><span>Color</span><input id="speciesColor" type="color"></label>
           <label class="ctrl"><span>Neighbor mixing</span><span><input id="socialMix" type="range" min="0" max="100" value="20"><output></output></span></label>
           <label class="ctrl"><span>Aggression</span><span><input id="aggression" type="range" min="0" max="100" value="25"><output></output></span></label>
           <label class="ctrl"><span>Vitality</span><span><input id="vitality" type="range" min="0" max="100" value="50"><output></output></span></label>
-          <div class="hint">Local cells inherit these laws, then bend them through mutation. Neighbor mixing decides whether a cell reads only kin or the whole crowd.</div>
+          <label class="ctrl"><span>Minimum food to survive</span><span><input id="speciesFoodNeed" type="range" min="0" max="100" value="28"><output></output></span></label>
+          <label class="ctrl"><span>Food consumed while alive</span><span><input id="speciesConsumption" type="range" min="0" max="100" value="45"><output></output></span></label>
+          <label class="ctrl"><span>Food required to breed</span><span><input id="speciesBirthNeed" type="range" min="0" max="100" value="45"><output></output></span></label>
+          <div class="lab-section">Geological behavior</div>
+          <label class="ctrl"><span>Persistence / anchoring</span><span><input id="persistence" type="range" min="0" max="100" value="8"><output></output></span></label>
+          <label class="ctrl"><span>Fossilize on death</span><span><input id="fossilize" type="range" min="0" max="100" value="12"><output></output></span></label>
+          <label class="ctrl"><span>Excavate old biomass</span><span><input id="excavate" type="range" min="0" max="100" value="18"><output></output></span></label>
+          <div class="hint">Anchored elders can outlive failed neighbor or food checks. Fossilized deaths become persistent matter; excavators chew that matter back into usable food.</div>
+          <div id="autoBiasReadout" class="bias-readout"><strong>Autopilot bias:</strong> neutral</div>
         </div>
       </details>
 
@@ -137,12 +165,15 @@
         <summary>Autopilot</summary>
         <div class="group">
           <div class="toggle-row"><span>Ecology watchdog</span><input id="autoSpark" type="checkbox" checked></div>
-          <label class="ctrl"><span>Quiet time</span><span><input id="quietTime" type="range" min="2" max="30" step="1" value="7"><output></output></span></label>
+          <label class="ctrl"><span>Quiet time</span><span><input id="quietTime" type="range" min="2" max="20" step="1" value="6"><output></output></span></label>
+          <label class="ctrl"><span>Ratio stagnation window</span><span><input id="balanceTime" type="range" min="12" max="60" step="1" value="28"><output></output></span></label>
+          <label class="ctrl"><span>Intervention force</span><span><input id="interventionForce" type="range" min="1" max="100" value="68"><output></output></span></label>
           <label class="ctrl"><span>Spark size</span><span><input id="sparkSize" type="range" min="1" max="18" value="7"><output></output></span></label>
           <label class="ctrl"><span>Mutation rate</span><span><input id="mutationRate" type="range" min="0" max="100" value="18"><output></output></span></label>
           <div class="toggle-row"><span>Rule-family drift</span><input id="ruleDrift" type="checkbox" checked></div>
-          <label class="ctrl"><span>Ecology wander</span><span><input id="ecologyWander" type="range" min="0" max="100" value="18"><output></output></span></label>
-          <div class="hint">The watchdog measures births, deaths, motion, population and species loss. When the garden goes inert, it performs a small brush-like intervention instead of resetting the world.</div>
+          <div class="toggle-row"><span>Palette drift</span><input id="paletteDrift" type="checkbox" checked></div>
+          <label class="ctrl"><span>Ecology wander</span><span><input id="ecologyWander" type="range" min="0" max="100" value="30"><output></output></span></label>
+          <div class="hint">The curator tracks extinction, visual activity, and population-ratio movement. It builds nurseries for weak species, taxes monopolies, moves resources, and can temporarily broaden an unstable law without changing speed, cell size, or species count.</div>
         </div>
       </details>
 
@@ -155,12 +186,28 @@
             <option value="ember">Ember Archive</option>
             <option value="bruise">Bruise Lagoon</option>
             <option value="mineral">Mineral Radio</option>
+            <option value="rainbow">RGB Rainbow Dazzle</option>
             <option value="custom">Custom</option>
+          </select></label>
+          <label class="ctrl"><span>Color treatment</span><select id="colorMode">
+            <option value="species">Species pigments</option>
+            <option value="rgb">RGB Dazzle · raw spectrum</option>
+            <option value="prism">Prismatic species</option>
+            <option value="age">Age spectrum</option>
+            <option value="resource">Resource spectrum</option>
+          </select></label>
+          <label class="ctrl"><span>Optical filter</span><select id="colorFilter">
+            <option value="none">None</option>
+            <option value="neon">Neon voltage</option>
+            <option value="pastel">Powdered glass</option>
+            <option value="nocturne">Deep nocturne</option>
+            <option value="negative">Negative world</option>
           </select></label>
           <div class="color-grid">
             <span>Species A / B</span><span><input id="color0" type="color"><input id="color1" type="color"></span>
             <span>Species C / D</span><span><input id="color2" type="color"><input id="color3" type="color"></span>
             <span>Food low / high</span><span><input id="foodLow" type="color"><input id="foodHigh" type="color"></span>
+            <span>Fossil matter</span><input id="matterColor" type="color">
             <span>Void</span><input id="voidColor" type="color">
           </div>
           <label class="ctrl"><span>Saturation</span><span><input id="saturation" type="range" min="0" max="140" value="100"><output></output></span></label>
@@ -201,7 +248,7 @@
 (() => {
   'use strict';
 
-  // ---------- small utilities ----------
+  // ---------- utilities ----------
   const $ = id => document.getElementById(id);
   const clamp = (v,a,b) => v<a?a:(v>b?b:v);
   const lerp = (a,b,t) => a+(b-a)*t;
@@ -211,9 +258,9 @@
   const pick = arr => arr[(Math.random()*arr.length)|0];
   const mask = counts => counts.reduce((m,n)=>m|(1<<n),0);
   const matchMask = (m,n) => !!(m&(1<<clamp(n|0,0,8)));
-  const hexToRgb = hex => {
-    const n=parseInt(hex.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255];
-  };
+  const maskCode = (prefix,m) => prefix+[0,1,2,3,4,5,6,7,8].filter(n=>matchMask(m,n)).join('');
+  const hexToRgb = hex => { const n=parseInt(hex.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; };
+  const rgbToHex = rgb => '#'+rgb.map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
   const rgbToHsv = (r,g,b) => {
     r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;
     let h=0; if(d){ if(mx===r)h=60*(((g-b)/d)%6); else if(mx===g)h=60*((b-r)/d+2); else h=60*((r-g)/d+4); }
@@ -226,395 +273,607 @@
     return [(r+m)*255,(g+m)*255,(b+m)*255];
   };
   const mixRgb = (a,b,t) => [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+  const shuffle = arr => { for(let i=arr.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]]} return arr; };
 
+  // Every named automaton below is only a pair of modular bitmasks: B for birth and S for survival.
+  // Custom species use the same engine and may toggle any neighbor count from 0–8.
   const RULES = {
-    life:       {name:'Life · B3/S23',       birth:mask([3]),       survive:mask([2,3])},
-    highlife:   {name:'HighLife · B36/S23',  birth:mask([3,6]),     survive:mask([2,3])},
-    coral:      {name:'Coral · B3/S45678',   birth:mask([3]),       survive:mask([4,5,6,7,8])},
-    seeds:      {name:'Seeds · B2/S∅',       birth:mask([2]),       survive:0},
-    maze:       {name:'Maze · B3/S12345',    birth:mask([3]),       survive:mask([1,2,3,4,5])},
-    daynight:   {name:'Day & Night',         birth:mask([3,6,7,8]), survive:mask([3,4,6,7,8])},
-    diamoeba:   {name:'Diamoeba',            birth:mask([3,5,6,7,8]),survive:mask([5,6,7,8])},
-    replicator: {name:'Replicator · B1357',  birth:mask([1,3,5,7]), survive:mask([1,3,5,7])},
-    anneal:     {name:'Anneal',               birth:mask([4,6,7,8]), survive:mask([3,5,6,7,8])},
-    twobytwo:   {name:'2×2 · B36/S125',       birth:mask([3,6]),     survive:mask([1,2,5])}
+    life:       {name:'Life · B3/S23',          birth:mask([3]),          survive:mask([2,3])},
+    highlife:   {name:'HighLife · B36/S23',     birth:mask([3,6]),        survive:mask([2,3])},
+    coral:      {name:'Coral · B3/S45678',      birth:mask([3]),          survive:mask([4,5,6,7,8])},
+    seeds:      {name:'Seeds · B2/S∅',          birth:mask([2]),          survive:0},
+    maze:       {name:'Maze · B3/S12345',       birth:mask([3]),          survive:mask([1,2,3,4,5])},
+    daynight:   {name:'Day & Night',            birth:mask([3,6,7,8]),    survive:mask([3,4,6,7,8])},
+    diamoeba:   {name:'Diamoeba',               birth:mask([3,5,6,7,8]),  survive:mask([5,6,7,8])},
+    replicator: {name:'Replicator · B1357',     birth:mask([1,3,5,7]),    survive:mask([1,3,5,7])},
+    anneal:     {name:'Anneal',                  birth:mask([4,6,7,8]),    survive:mask([3,5,6,7,8])},
+    twobytwo:   {name:'2×2 · B36/S125',          birth:mask([3,6]),        survive:mask([1,2,5])},
+    morley:     {name:'Move / Morley',           birth:mask([3,6,8]),      survive:mask([2,4,5])},
+    stains:     {name:'Stains',                  birth:mask([3,6,7,8]),    survive:mask([2,3,5,6,7,8])},
+    coag:       {name:'Coagulations',            birth:mask([3,7,8]),      survive:mask([2,3,5,6,7,8])},
+    serviettes: {name:'Serviettes',              birth:mask([2,3,4]),      survive:0}
   };
   const RULE_KEYS = Object.keys(RULES);
-  const SAFE_DRIFT_RULES = ['life','highlife','coral','maze','daynight','twobytwo','anneal'];
+  const SAFE_DRIFT_RULES = ['life','highlife','coral','maze','daynight','twobytwo','anneal','morley','stains','coag'];
+  const NURSERY_BIRTH = mask([2,3]);
+  const NURSERY_SURVIVE = mask([1,2,3,4,5]);
 
   const PALETTES = {
-    jelly:{species:['#74f7ff','#ff6edb','#a7ff62','#8c78ff'],foodLow:'#061126',foodHigh:'#16c6c8',void:'#01030a'},
-    acid:{species:['#d6ff00','#ff3ab8','#2effa4','#ff8a00'],foodLow:'#13021a',foodHigh:'#b9ff18',void:'#050006'},
-    ember:{species:['#fff1a8','#ff8a2a','#ff3b2f','#9b5cff'],foodLow:'#100607',foodHigh:'#a12a14',void:'#020101'},
-    bruise:{species:['#bca7ff','#ff72ad','#69c7ff','#67ffd1'],foodLow:'#090718',foodHigh:'#4b2d76',void:'#020108'},
-    mineral:{species:['#90ffdf','#ffcf80','#9eb7ff','#f4f0ff'],foodLow:'#071316',foodHigh:'#3c8d78',void:'#020606'}
+    jelly:{species:['#74f7ff','#ff6edb','#a7ff62','#8c78ff'],foodLow:'#061126',foodHigh:'#16c6c8',matter:'#b8c6d8',void:'#01030a',mode:'species',filter:'none'},
+    acid:{species:['#d6ff00','#ff3ab8','#2effa4','#ff8a00'],foodLow:'#13021a',foodHigh:'#b9ff18',matter:'#f4f58d',void:'#050006',mode:'prism',filter:'neon'},
+    ember:{species:['#fff1a8','#ff8a2a','#ff3b2f','#9b5cff'],foodLow:'#100607',foodHigh:'#a12a14',matter:'#d8b48b',void:'#020101',mode:'species',filter:'nocturne'},
+    bruise:{species:['#bca7ff','#ff72ad','#69c7ff','#67ffd1'],foodLow:'#090718',foodHigh:'#4b2d76',matter:'#9c8daa',void:'#020108',mode:'species',filter:'none'},
+    mineral:{species:['#90ffdf','#ffcf80','#9eb7ff','#f4f0ff'],foodLow:'#071316',foodHigh:'#3c8d78',matter:'#cbd7cf',void:'#020606',mode:'species',filter:'pastel'},
+    rainbow:{species:['#ff2a2a','#29ff55','#2877ff','#ff29dc'],foodLow:'#070018',foodHigh:'#00d9ff',matter:'#ffffff',void:'#000000',mode:'rgb',filter:'none'}
   };
+
+  function makeProfile(rule='life',extras={}){
+    const r=RULES[rule]||RULES.life;
+    return Object.assign({
+      rule,birthMask:r.birth,surviveMask:r.survive,
+      mix:.16,aggression:.2,vitality:.52,
+      foodNeed:.28,consumption:.45,birthNeed:.45,
+      persistence:.08,fossilize:.12,excavate:.18
+    },extras);
+  }
+  function normalizeProfile(p={},i=0){
+    const fallback=['life','highlife','coral','twobytwo'][i]||'life';
+    const rule=RULES[p.rule]?p.rule:fallback;
+    return makeProfile(rule,{
+      ...p,
+      birthMask:Number.isFinite(p.birthMask)?p.birthMask:RULES[rule].birth,
+      surviveMask:Number.isFinite(p.surviveMask)?p.surviveMask:RULES[rule].survive,
+      foodNeed:Number.isFinite(p.foodNeed)?p.foodNeed:.28,
+      consumption:Number.isFinite(p.consumption)?p.consumption:.45,
+      birthNeed:Number.isFinite(p.birthNeed)?p.birthNeed:.45,
+      persistence:Number.isFinite(p.persistence)?p.persistence:.08,
+      fossilize:Number.isFinite(p.fossilize)?p.fossilize:.12,
+      excavate:Number.isFinite(p.excavate)?p.excavate:.18
+    });
+  }
 
   const PRESETS = {
     polyphony:{count:4,rules:['life','highlife','coral','twobytwo'],mix:[.08,.18,.22,.30],agg:[.18,.26,.12,.20],vit:[.52,.50,.60,.54],predation:.22,mutation:.16,density:.16,palette:'jelly'},
     coral:{count:4,rules:['coral','maze','highlife','twobytwo'],mix:[.12,.30,.20,.42],agg:[.06,.08,.12,.05],vit:[.68,.56,.52,.62],predation:.07,mutation:.10,density:.20,palette:'mineral'},
-    predator:{count:4,rules:['life','highlife','life','highlife'],mix:[.12,.12,.12,.12],agg:[.82,.76,.84,.72],vit:[.50,.52,.48,.54],predation:.72,mutation:.13,density:.27,palette:'acid'},
+    predator:{count:4,rules:['life','highlife','morley','stains'],mix:[.12,.12,.12,.12],agg:[.82,.76,.84,.72],vit:[.50,.52,.48,.54],predation:.72,mutation:.13,density:.27,palette:'acid'},
     mutation:{count:4,rules:['life','maze','twobytwo','highlife'],mix:[.42,.55,.34,.68],agg:[.28,.22,.33,.18],vit:[.50,.56,.48,.52],predation:.22,mutation:.64,density:.24,palette:'bruise'},
     crystal:{count:3,rules:['seeds','diamoeba','anneal','coral'],mix:[.15,.08,.25,.2],agg:[.08,.16,.08,.1],vit:[.46,.64,.58,.52],predation:.12,mutation:.22,density:.16,palette:'ember'},
     classic:{count:1,rules:['life','life','life','life'],mix:[0,0,0,0],agg:[0,0,0,0],vit:[.52,.52,.52,.52],predation:0,mutation:.05,density:.24,palette:'jelly'}
   };
 
+  // Reality roles are first-principles parameter packages, not opaque algorithms.
+  const ROLES = {
+    perennial:()=>makeProfile('maze',{mix:.08,aggression:.04,vitality:.66,foodNeed:0,consumption:.04,birthNeed:.38,persistence:.92,fossilize:.42,excavate:.06,surviveMask:mask([1,2,3,4,5,6,7,8])}),
+    reef:()=>makeProfile('coral',{mix:.10,aggression:.03,vitality:.72,foodNeed:.03,consumption:.12,birthNeed:.46,persistence:.72,fossilize:.78,excavate:.03}),
+    lichen:()=>makeProfile('coag',{mix:.32,aggression:.05,vitality:.62,foodNeed:.02,consumption:.08,birthNeed:.28,persistence:.78,fossilize:.56,excavate:.12}),
+    colonizer:()=>makeProfile(pick(['seeds','highlife','replicator','serviettes']),{mix:.18,aggression:.12,vitality:.66,foodNeed:.18,consumption:.44,birthNeed:.16,persistence:.01,fossilize:.04,excavate:.14}),
+    predator:()=>makeProfile(pick(['life','morley','twobytwo']),{mix:.18,aggression:.88,vitality:.54,foodNeed:.34,consumption:.66,birthNeed:.48,persistence:.03,fossilize:.08,excavate:.34}),
+    grazer:()=>makeProfile(pick(['life','highlife','maze']),{mix:.28,aggression:.24,vitality:.58,foodNeed:.18,consumption:.26,birthNeed:.34,persistence:.16,fossilize:.16,excavate:.56}),
+    excavator:()=>makeProfile('stains',{mix:.34,aggression:.32,vitality:.57,foodNeed:.12,consumption:.30,birthNeed:.30,persistence:.10,fossilize:.02,excavate:.96}),
+    crystal:()=>makeProfile(pick(['anneal','diamoeba','coag']),{mix:.08,aggression:.06,vitality:.64,foodNeed:.01,consumption:.05,birthNeed:.52,persistence:.84,fossilize:.90,excavate:.02}),
+    flicker:()=>makeProfile(pick(['seeds','serviettes','replicator']),{mix:.58,aggression:.18,vitality:.45,foodNeed:.42,consumption:.82,birthNeed:.12,persistence:0,fossilize:0,excavate:.06}),
+    symbiote:()=>makeProfile('daynight',{mix:.88,aggression:.02,vitality:.60,foodNeed:.09,consumption:.18,birthNeed:.24,persistence:.30,fossilize:.24,excavate:.30})
+  };
+  const REALITIES = [
+    {key:'fossilForest',name:'Fossil Forest',roles:['perennial','lichen','excavator'],palette:'mineral',mode:'species',filter:'pastel',world:{density:12,food:50,growth:24,diffusion:18,decay:4,metabolism:18,birth:34,predation:8,pulse:12,matter:2,afterimage:52,speed:20,cell:4}},
+    {key:'flashRiot',name:'Flash Riot',roles:['flicker','colonizer','predator','flicker'],palette:'rainbow',mode:'rgb',filter:'neon',world:{density:31,food:72,growth:68,diffusion:58,decay:21,metabolism:74,birth:20,predation:42,pulse:65,matter:32,afterimage:72,speed:38,cell:3}},
+    {key:'coralSiege',name:'Coral Siege',roles:['reef','predator','excavator','lichen'],palette:'bruise',mode:'prism',filter:'nocturne',world:{density:20,food:48,growth:31,diffusion:24,decay:7,metabolism:28,birth:42,predation:56,pulse:18,matter:4,afterimage:38,speed:24,cell:4}},
+    {key:'crystalAsh',name:'Crystal Ash',roles:['crystal','flicker','excavator'],palette:'ember',mode:'resource',filter:'negative',world:{density:15,food:32,growth:20,diffusion:10,decay:9,metabolism:23,birth:48,predation:14,pulse:9,matter:1,afterimage:60,speed:18,cell:5}},
+    {key:'predatorCarousel',name:'Predator Carousel',roles:['predator','predator','grazer','colonizer'],palette:'acid',mode:'species',filter:'neon',world:{density:27,food:68,growth:46,diffusion:40,decay:8,metabolism:51,birth:31,predation:88,pulse:39,matter:18,afterimage:28,speed:30,cell:4}},
+    {key:'slowContinents',name:'Slow Continents',roles:['perennial','reef','crystal','excavator'],palette:'jelly',mode:'age',filter:'nocturne',world:{density:8,food:37,growth:16,diffusion:8,decay:2,metabolism:9,birth:56,predation:6,pulse:4,matter:0,afterimage:22,speed:12,cell:6}},
+    {key:'symbioticWeather',name:'Symbiotic Weather',roles:['symbiote','symbiote','colonizer','lichen'],palette:'bruise',mode:'prism',filter:'pastel',world:{density:23,food:79,growth:53,diffusion:66,decay:5,metabolism:32,birth:24,predation:4,pulse:44,matter:8,afterimage:46,speed:27,cell:3}},
+    {key:'rgbDazzle',name:'RGB Dazzle',roles:['replicator','flicker','morley','predator'],palette:'rainbow',mode:'rgb',filter:'none',world:{density:25,food:60,growth:55,diffusion:35,decay:15,metabolism:57,birth:18,predation:34,pulse:55,matter:25,afterimage:86,speed:35,cell:3}},
+    {key:'ruinEaters',name:'Ruin Eaters',roles:['crystal','reef','excavator','grazer'],palette:'mineral',mode:'resource',filter:'neon',world:{density:16,food:41,growth:27,diffusion:13,decay:3,metabolism:21,birth:39,predation:22,pulse:10,matter:2,afterimage:35,speed:22,cell:4}},
+    {key:'sparseArchipelago',name:'Sparse Archipelago',roles:['perennial','colonizer','grazer'],palette:'jelly',mode:'species',filter:'none',world:{density:5,food:84,growth:19,diffusion:4,decay:1,metabolism:16,birth:29,predation:16,pulse:7,matter:6,afterimage:18,speed:16,cell:5}}
+  ];
+
   const canvas=$('stage'), ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
   const hud=$('hud'), toast=$('eventToast'), stageWrap=$('stageWrap');
   let W=0,H=0,N=0,imageData=null;
-  let speciesA, speciesB, ageA, ageB, traitA, traitB, foodA, foodB, memoryA, memoryB;
+  let speciesA,speciesB,ageA,ageB,traitA,traitB,foodA,foodB,memoryA,memoryB,matterA,matterB;
   let running=true,lastFrame=performance.now(),accumulator=0,lastHud=0,fps=0,frames=0;
-  let worldSeed=Math.random()*10000, stepCounter=0, pulseClock=0, quietClock=0, driftClock=0, wanderPhase=Math.random()*Math.PI*2;
-  let eventText='';
-  let metrics={alive:0,changed:0,births:0,deaths:0,activity:1,food:.5,species:[0,0,0,0],present:0};
-  let previousAlive=0;
-  const speciesAbsence=[0,0,0,0];
+  let worldSeed=Math.random()*10000,stepCounter=0,pulseClock=0,quietClock=0,driftClock=0,wanderPhase=Math.random()*Math.PI*2,simElapsed=0;
+  let metrics={alive:0,changed:0,births:0,deaths:0,activity:1,food:.5,matter:0,species:[0,0,0,0],present:0,ratioMovement:1,dominance:0};
+  let previousAlive=0,lastRealityKey='',lastBalanceAt=-999;
+  const speciesAbsence=[0,0,0,0],speciesStable=[0,0,0,0],rescueAttempts=[0,0,0,0];
+  const ratioSamples=[];
+  const autoMods=[0,1,2,3].map(()=>({vitality:0,aggression:0,metabolism:0,birth:0,foodNeed:0,hue:0,hueTarget:0,nursery:0,ruleAssist:0}));
+  const autoResource={growth:0,diffusion:0,decay:0,hue:0,hueTarget:0};
 
-  const controls = {};
+  const controls={};
   ['play','spark','newReality','reseedFood','clearLife','ecologyPreset','speciesCount','speed','cellSize','density','wrapEdges','afterimage',
-   'foodAbundance','foodGrowth','diffusion','foodDecay','metabolism','birthCost','predation','resourcePulse','speciesEditor','ruleFamily','speciesColor',
-   'socialMix','aggression','vitality','autoSpark','quietTime','sparkSize','mutationRate','ruleDrift','ecologyWander','palettePreset','color0','color1',
-   'color2','color3','foodLow','foodHigh','voidColor','saturation','brightness','hueWander','spatialHue','brushMode','brushSpecies','brushSize','savePng','reset','mobileControls']
+   'foodAbundance','foodGrowth','diffusion','foodDecay','metabolism','birthCost','predation','resourcePulse','matterDecay','speciesEditor','ruleFamily','speciesColor',
+   'socialMix','aggression','vitality','speciesFoodNeed','speciesConsumption','speciesBirthNeed','persistence','fossilize','excavate','birthGrid','surviveGrid','birthCode','surviveCode','autoBiasReadout',
+   'autoSpark','quietTime','balanceTime','interventionForce','sparkSize','mutationRate','ruleDrift','paletteDrift','ecologyWander','palettePreset','colorMode','colorFilter','color0','color1',
+   'color2','color3','foodLow','foodHigh','matterColor','voidColor','saturation','brightness','hueWander','spatialHue','brushMode','brushSpecies','brushSize','savePng','reset','mobileControls']
    .forEach(id=>controls[id]=$(id));
 
-  Object.entries(RULES).forEach(([key,r])=>{
-    const o=document.createElement('option');o.value=key;o.textContent=r.name;controls.ruleFamily.appendChild(o);
-  });
+  Object.entries(RULES).forEach(([key,r])=>{const o=document.createElement('option');o.value=key;o.textContent=r.name;controls.ruleFamily.appendChild(o)});
+  const customOption=document.createElement('option');customOption.value='custom';customOption.textContent='Custom B/S mask';controls.ruleFamily.appendChild(customOption);
 
-  const state = {
+  const state={
     speciesCount:4,speed:24,cellSize:4,density:.16,wrap:true,afterimage:.32,
-    foodAbundance:.64,foodGrowth:.055,diffusion:.11,foodDecay:.0012,metabolism:.075,birthCost:.075,predation:.24,resourcePulse:.24,
-    mutationRate:.18,autoSpark:true,quietTime:7,sparkSize:7,ruleDrift:true,ecologyWander:.18,
-    palette:'jelly',colors:[...PALETTES.jelly.species],foodLow:PALETTES.jelly.foodLow,foodHigh:PALETTES.jelly.foodHigh,void:PALETTES.jelly.void,
-    saturation:1,brightness:1,hueWander:.32,spatialHue:.24,hueOffset:0,
+    foodAbundance:.64,foodGrowth:.055,diffusion:.11,foodDecay:.0012,metabolism:.075,birthCost:.075,predation:.24,resourcePulse:.24,matterDecay:.0007,
+    mutationRate:.18,autoSpark:true,quietTime:6,balanceTime:28,interventionForce:.68,ruleDrift:true,paletteDrift:true,ecologyWander:.30,
+    palette:'jelly',colors:[...PALETTES.jelly.species],foodLow:PALETTES.jelly.foodLow,foodHigh:PALETTES.jelly.foodHigh,matterColor:PALETTES.jelly.matter,void:PALETTES.jelly.void,
+    saturation:1,brightness:1,hueWander:.32,spatialHue:.24,hueOffset:0,colorMode:'species',colorFilter:'none',
     brushMode:'life',brushSpecies:0,brushSize:8,
-    profiles:[0,1,2,3].map(i=>({rule:['life','highlife','coral','twobytwo'][i],mix:[.08,.18,.22,.30][i],aggression:[.18,.26,.12,.20][i],vitality:[.52,.50,.60,.54][i]}))
+    profiles:[
+      makeProfile('life',{mix:.08,aggression:.18,vitality:.52}),
+      makeProfile('highlife',{mix:.18,aggression:.26,vitality:.50}),
+      makeProfile('coral',{mix:.22,aggression:.12,vitality:.60,persistence:.18,fossilize:.28}),
+      makeProfile('twobytwo',{mix:.30,aggression:.20,vitality:.54})
+    ]
   };
 
   function slider01(el){return +el.value/100}
   function mapControls(){
+    const previousSpeciesCount=state.speciesCount;
     state.speciesCount=+controls.speciesCount.value;
+    if(speciesA&&previousSpeciesCount!==state.speciesCount){
+      for(let i=0;i<speciesA.length;i++)if(speciesA[i]>state.speciesCount){speciesA[i]=0;ageA[i]=0;memoryA[i]=0}
+      resetAutopilotMemory();
+    }
     state.speed=+controls.speed.value;
     state.density=+controls.density.value/100;
     state.wrap=controls.wrapEdges.checked;
     state.afterimage=slider01(controls.afterimage);
     state.foodAbundance=slider01(controls.foodAbundance);
-    // Nonlinear maps: the full slider is useful, but the dangerous region gets more physical space.
-    state.foodGrowth=.006 + Math.pow(slider01(controls.foodGrowth),1.8)*.23;
-    state.diffusion=Math.pow(slider01(controls.diffusion),1.45)*.34;
-    state.foodDecay=Math.pow(slider01(controls.foodDecay),2.15)*.11;
-    state.metabolism=.012 + Math.pow(slider01(controls.metabolism),1.7)*.36;
-    state.birthCost=.008 + Math.pow(slider01(controls.birthCost),1.65)*.30;
+    state.foodGrowth=.003+Math.pow(slider01(controls.foodGrowth),1.8)*.27;
+    state.diffusion=Math.pow(slider01(controls.diffusion),1.45)*.38;
+    state.foodDecay=Math.pow(slider01(controls.foodDecay),2.15)*.13;
+    state.metabolism=.004+Math.pow(slider01(controls.metabolism),1.7)*.40;
+    state.birthCost=.003+Math.pow(slider01(controls.birthCost),1.65)*.34;
     state.predation=slider01(controls.predation);
     state.resourcePulse=slider01(controls.resourcePulse);
+    state.matterDecay=Math.pow(slider01(controls.matterDecay),2.1)*.025;
     state.autoSpark=controls.autoSpark.checked;
     state.quietTime=+controls.quietTime.value;
+    state.balanceTime=+controls.balanceTime.value;
+    state.interventionForce=slider01(controls.interventionForce);
     state.sparkSize=+controls.sparkSize.value;
     state.mutationRate=Math.pow(slider01(controls.mutationRate),1.65);
     state.ruleDrift=controls.ruleDrift.checked;
+    state.paletteDrift=controls.paletteDrift.checked;
     state.ecologyWander=slider01(controls.ecologyWander);
     state.saturation=+controls.saturation.value/100;
     state.brightness=+controls.brightness.value/100;
     state.hueWander=slider01(controls.hueWander);
     state.spatialHue=slider01(controls.spatialHue);
+    state.colorMode=controls.colorMode.value;
+    state.colorFilter=controls.colorFilter.value;
     state.brushMode=controls.brushMode.value;
     state.brushSpecies=+controls.brushSpecies.value;
     state.brushSize=+controls.brushSize.value;
     state.colors=[controls.color0.value,controls.color1.value,controls.color2.value,controls.color3.value];
-    state.foodLow=controls.foodLow.value; state.foodHigh=controls.foodHigh.value; state.void=controls.voidColor.value;
-    writeOutputs();
-    persist();
+    state.foodLow=controls.foodLow.value;state.foodHigh=controls.foodHigh.value;state.matterColor=controls.matterColor.value;state.void=controls.voidColor.value;
+    writeOutputs();persist();
   }
 
   function writeOutputs(){
     const vals={speciesCount:state.speciesCount,speed:state.speed+' Hz',cellSize:controls.cellSize.value+' px',density:Math.round(state.density*100)+'%',afterimage:Math.round(state.afterimage*100)+'%',
-      foodAbundance:controls.foodAbundance.value+'%',foodGrowth:controls.foodGrowth.value+'%',diffusion:controls.diffusion.value+'%',foodDecay:controls.foodDecay.value+'%',metabolism:controls.metabolism.value+'%',birthCost:controls.birthCost.value+'%',predation:controls.predation.value+'%',resourcePulse:controls.resourcePulse.value+'%',
-      socialMix:controls.socialMix.value+'%',aggression:controls.aggression.value+'%',vitality:controls.vitality.value+'%',quietTime:state.quietTime+' s',sparkSize:state.sparkSize,mutationRate:controls.mutationRate.value+'%',ecologyWander:controls.ecologyWander.value+'%',
+      foodAbundance:controls.foodAbundance.value+'%',foodGrowth:controls.foodGrowth.value+'%',diffusion:controls.diffusion.value+'%',foodDecay:controls.foodDecay.value+'%',metabolism:controls.metabolism.value+'%',birthCost:controls.birthCost.value+'%',predation:controls.predation.value+'%',resourcePulse:controls.resourcePulse.value+'%',matterDecay:controls.matterDecay.value+'%',
+      socialMix:controls.socialMix.value+'%',aggression:controls.aggression.value+'%',vitality:controls.vitality.value+'%',speciesFoodNeed:controls.speciesFoodNeed.value+'%',speciesConsumption:controls.speciesConsumption.value+'%',speciesBirthNeed:controls.speciesBirthNeed.value+'%',persistence:controls.persistence.value+'%',fossilize:controls.fossilize.value+'%',excavate:controls.excavate.value+'%',
+      quietTime:state.quietTime+' s',balanceTime:state.balanceTime+' s',interventionForce:controls.interventionForce.value+'%',sparkSize:state.sparkSize,mutationRate:controls.mutationRate.value+'%',ecologyWander:controls.ecologyWander.value+'%',
       saturation:controls.saturation.value+'%',brightness:controls.brightness.value+'%',hueWander:controls.hueWander.value+'%',spatialHue:controls.spatialHue.value+'%',brushSize:state.brushSize};
     Object.entries(vals).forEach(([id,v])=>{const out=controls[id]?.parentElement?.querySelector('output');if(out)out.textContent=v});
+  }
+
+  function buildNeighborGrids(){
+    for(const [gridId,kind] of [['birthGrid','birth'],['surviveGrid','survive']]){
+      const grid=controls[gridId];grid.innerHTML='';
+      for(let n=0;n<=8;n++){
+        const b=document.createElement('button');b.type='button';b.className='neighbor-btn';b.textContent=n;b.dataset.kind=kind;b.dataset.n=n;
+        b.addEventListener('click',()=>toggleNeighbor(kind,n));grid.appendChild(b);
+      }
+    }
+  }
+  function refreshNeighborGrids(){
+    const p=state.profiles[+controls.speciesEditor.value];
+    for(const b of controls.birthGrid.children)b.classList.toggle('on',matchMask(p.birthMask,+b.dataset.n));
+    for(const b of controls.surviveGrid.children)b.classList.toggle('on',matchMask(p.surviveMask,+b.dataset.n));
+    controls.birthCode.textContent=maskCode('B',p.birthMask);controls.surviveCode.textContent=maskCode('S',p.surviveMask);
+  }
+  function toggleNeighbor(kind,n){
+    const i=+controls.speciesEditor.value,p=state.profiles[i],key=kind==='birth'?'birthMask':'surviveMask';
+    p[key]^=(1<<n);p.rule='custom';controls.ruleFamily.value='custom';refreshNeighborGrids();persist();
   }
 
   function syncSpeciesEditor(){
     const i=+controls.speciesEditor.value,p=state.profiles[i];
     controls.ruleFamily.value=p.rule;controls.speciesColor.value=state.colors[i];controls.socialMix.value=Math.round(p.mix*100);controls.aggression.value=Math.round(p.aggression*100);controls.vitality.value=Math.round(p.vitality*100);
-    writeOutputs();
+    controls.speciesFoodNeed.value=Math.round(p.foodNeed*100);controls.speciesConsumption.value=Math.round(p.consumption*100);controls.speciesBirthNeed.value=Math.round(p.birthNeed*100);
+    controls.persistence.value=Math.round(p.persistence*100);controls.fossilize.value=Math.round(p.fossilize*100);controls.excavate.value=Math.round(p.excavate*100);
+    refreshNeighborGrids();updateAutoBiasReadout();writeOutputs();
   }
-
   function mapSpeciesEditor(){
     const i=+controls.speciesEditor.value,p=state.profiles[i];
-    p.rule=controls.ruleFamily.value;
-    p.mix=slider01(controls.socialMix);
-    p.aggression=slider01(controls.aggression);
-    p.vitality=slider01(controls.vitality);
-    controls['color'+i].value=controls.speciesColor.value;
-    mapControls();
+    const family=controls.ruleFamily.value;
+    if(family!=='custom'&&family!==p.rule){p.rule=family;p.birthMask=RULES[family].birth;p.surviveMask=RULES[family].survive}
+    else p.rule=family;
+    p.mix=slider01(controls.socialMix);p.aggression=slider01(controls.aggression);p.vitality=slider01(controls.vitality);
+    p.foodNeed=slider01(controls.speciesFoodNeed);p.consumption=slider01(controls.speciesConsumption);p.birthNeed=slider01(controls.speciesBirthNeed);
+    p.persistence=slider01(controls.persistence);p.fossilize=slider01(controls.fossilize);p.excavate=slider01(controls.excavate);
+    controls['color'+i].value=controls.speciesColor.value;refreshNeighborGrids();mapControls();
+  }
+  function updateAutoBiasReadout(){
+    const i=+controls.speciesEditor.value,m=autoMods[i];
+    const bits=[];
+    const push=(name,v,scale=100)=>{if(Math.abs(v)>.015)bits.push(`${name} ${v>0?'+':''}${Math.round(v*scale)}%`)};
+    push('vitality',m.vitality);push('aggression',m.aggression);push('hunger',m.foodNeed);push('metabolism',m.metabolism);push('birth cost',m.birth);
+    if(m.nursery>0)bits.push(`nursery ${m.nursery.toFixed(0)}s`);if(m.ruleAssist>0)bits.push(`law assist ${m.ruleAssist.toFixed(0)}s`);if(Math.abs(m.hue)>3)bits.push(`hue ${Math.round(m.hue)}°`);
+    controls.autoBiasReadout.innerHTML=`<strong>Autopilot bias:</strong> ${bits.length?bits.join(' · '):'neutral'}`;
   }
 
   function applyPalette(name){
     if(name==='custom')return;
     const p=PALETTES[name];state.palette=name;
-    p.species.forEach((c,i)=>controls['color'+i].value=c);
-    controls.foodLow.value=p.foodLow;controls.foodHigh.value=p.foodHigh;controls.voidColor.value=p.void;
-    controls.speciesColor.value=p.species[+controls.speciesEditor.value];
-    mapControls();
+    p.species.forEach((c,i)=>controls['color'+i].value=c);controls.foodLow.value=p.foodLow;controls.foodHigh.value=p.foodHigh;controls.matterColor.value=p.matter;controls.voidColor.value=p.void;
+    controls.colorMode.value=p.mode||'species';controls.colorFilter.value=p.filter||'none';controls.speciesColor.value=p.species[+controls.speciesEditor.value];mapControls();
+  }
+  function applyPreset(name,seed=true){
+    if(name==='custom')return;
+    const p=PRESETS[name];controls.speciesCount.value=p.count;controls.predation.value=Math.round(p.predation*100);controls.mutationRate.value=Math.round(Math.pow(p.mutation,1/1.65)*100);controls.density.value=Math.round(p.density*100);
+    for(let i=0;i<4;i++)state.profiles[i]=makeProfile(p.rules[i],{mix:p.mix[i],aggression:p.agg[i],vitality:p.vit[i]});
+    controls.palettePreset.value=p.palette;applyPalette(p.palette);syncSpeciesEditor();mapControls();resetAutopilotMemory();
+    if(seed){randomizeLife(state.density);seedFoodField();announce(name==='classic'?'The garden remembers one law.':'Ecology installed: '+controls.ecologyPreset.selectedOptions[0].textContent)}
   }
 
-  function applyPreset(name,seed=true){
-    const p=PRESETS[name];
-    controls.speciesCount.value=p.count;controls.predation.value=Math.round(p.predation*100);controls.mutationRate.value=Math.round(Math.pow(p.mutation,1/1.65)*100);controls.density.value=Math.round(p.density*100);
-    for(let i=0;i<4;i++)state.profiles[i]={rule:p.rules[i],mix:p.mix[i],aggression:p.agg[i],vitality:p.vit[i]};
-    controls.palettePreset.value=p.palette;applyPalette(p.palette);syncSpeciesEditor();mapControls();
-    if(seed){randomizeLife(state.density);seedFoodField();announce(PRESETS[name]===PRESETS.classic?'The garden remembers one law.':'Ecology installed: '+controls.ecologyPreset.selectedOptions[0].textContent)}
+  function resetAutopilotMemory(){
+    ratioSamples.length=0;speciesAbsence.fill(0);speciesStable.fill(0);rescueAttempts.fill(0);quietClock=0;lastBalanceAt=simElapsed-99;
+    for(const m of autoMods)Object.assign(m,{vitality:0,aggression:0,metabolism:0,birth:0,foodNeed:0,hue:0,hueTarget:0,nursery:0,ruleAssist:0});
+    Object.assign(autoResource,{growth:0,diffusion:0,decay:0,hue:0,hueTarget:0});
   }
 
   function resizeGrid(preserve=true){
-    const cell=+controls.cellSize.value;
-    state.cellSize=cell;
-    const rect=stageWrap.getBoundingClientRect();
-    const newW=Math.max(8,Math.floor(rect.width/cell)),newH=Math.max(8,Math.floor(rect.height/cell));
+    const cell=+controls.cellSize.value;state.cellSize=cell;
+    const rect=stageWrap.getBoundingClientRect();const newW=Math.max(8,Math.floor(rect.width/cell)),newH=Math.max(8,Math.floor(rect.height/cell));
     if(newW===W&&newH===H)return;
-    const old={W,H,speciesA,ageA,traitA,foodA,memoryA};
+    const old={W,H,speciesA,ageA,traitA,foodA,memoryA,matterA};
     W=newW;H=newH;N=W*H;canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;imageData=ctx.createImageData(W,H);
     speciesA=new Uint8Array(N);speciesB=new Uint8Array(N);ageA=new Uint16Array(N);ageB=new Uint16Array(N);traitA=new Uint8Array(N);traitB=new Uint8Array(N);
-    foodA=new Float32Array(N);foodB=new Float32Array(N);memoryA=new Uint8Array(N);memoryB=new Uint8Array(N);
+    foodA=new Float32Array(N);foodB=new Float32Array(N);memoryA=new Uint8Array(N);memoryB=new Uint8Array(N);matterA=new Float32Array(N);matterB=new Float32Array(N);
     if(preserve&&old.speciesA&&old.W){
       const cw=Math.min(W,old.W),ch=Math.min(H,old.H);
       for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){
-        const ni=y*W+x,oi=y*old.W+x;speciesA[ni]=old.speciesA[oi];ageA[ni]=old.ageA[oi];traitA[ni]=old.traitA[oi];foodA[ni]=old.foodA[oi];memoryA[ni]=old.memoryA[oi];
+        const ni=y*W+x,oi=y*old.W+x;speciesA[ni]=old.speciesA[oi];ageA[ni]=old.ageA[oi];traitA[ni]=old.traitA[oi];foodA[ni]=old.foodA[oi];memoryA[ni]=old.memoryA[oi];matterA[ni]=old.matterA?.[oi]||0;
       }
     }else{seedFoodField();randomizeLife(state.density)}
   }
-
   function idx(x,y){return y*W+x}
   function coords(i){return [i%W,(i/W)|0]}
   function wrapped(x,max){return (x+max)%max}
+  function neighborIndex(x,y){if(state.wrap)return idx(wrapped(x,W),wrapped(y,H));if(x<0||x>=W||y<0||y>=H)return-1;return idx(x,y)}
 
   function seedFoodField(){
     worldSeed=Math.random()*10000;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
       const n=.52*noise2D(x*.082,y*.071,worldSeed)+.30*noise2D(x*.029,y*.033,worldSeed+3)+.18*noise2D(x*.009,y*.012,worldSeed+9);
-      const basin=Math.pow(n,.72);foodA[idx(x,y)]=clamp(.02+basin*state.foodAbundance,0,1);
+      const basin=Math.pow(n,.72);foodA[idx(x,y)]=clamp(.01+basin*state.foodAbundance,0,1);
     }
     announce('A new resource geography condenses.');
   }
-
   function randomizeLife(density=state.density){
-    speciesA.fill(0);ageA.fill(0);traitA.fill(128);memoryA.fill(0);
-    for(let i=0;i<N;i++)if(chance(density)){
-      speciesA[i]=1+((Math.random()*state.speciesCount)|0);ageA[i]=1+((Math.random()*18)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=220;
-    }
-    quietClock=0;
+    speciesA.fill(0);ageA.fill(0);traitA.fill(128);memoryA.fill(0);matterA.fill(0);
+    for(let i=0;i<N;i++)if(chance(density)){speciesA[i]=1+((Math.random()*state.speciesCount)|0);ageA[i]=1+((Math.random()*18)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=220}
+    resetAutopilotMemory();
   }
+  function clearLife(){speciesA.fill(0);ageA.fill(0);memoryA.fill(0);quietClock=0;announce('The organisms vanish; food and fossils remain.');}
 
-  function clearLife(){speciesA.fill(0);ageA.fill(0);memoryA.fill(0);quietClock=0;announce('The organisms vanish; the food field remains.');}
-
-  function localFoodHotspot(){
-    let best=(Math.random()*N)|0,bestScore=-1;
-    for(let k=0;k<64;k++){const i=(Math.random()*N)|0;const score=foodA[i]+Math.random()*.38;if(score>bestScore){best=i;bestScore=score}}
+  function neighborhoodScore(i,targetSpecies=0){
+    const [x,y]=coords(i);let occupied=0,target=0,dominant=0;
+    for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+      const ni=neighborIndex(x+dx,y+dy);if(ni<0)continue;const s=speciesA[ni];if(s){occupied++;if(s===targetSpecies)target++;dominant=Math.max(dominant,s)}
+    }
+    return {occupied,target,dominant};
+  }
+  function localFoodHotspot(targetSpecies=0,preferEmpty=true){
+    let best=(Math.random()*N)|0,bestScore=-1e9;
+    for(let k=0;k<180;k++){
+      const i=(Math.random()*N)|0,n=neighborhoodScore(i,targetSpecies);
+      const score=foodA[i]*1.4-matterA[i]*.35-n.occupied*.022+(targetSpecies?n.target*.035:0)+(preferEmpty&&!speciesA[i]?.24:0)+Math.random()*.24;
+      if(score>bestScore){best=i;bestScore=score}
+    }
     return coords(best);
   }
 
-  function stampLife(cx,cy,r=state.sparkSize,forced=0,soft=true){
+  function stampLife(cx,cy,r=state.sparkSize,forced=0,soft=true,clearCompetition=false){
     const r2=r*r;
     for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
-      if(dx*dx+dy*dy>r2||!chance(soft?.38:.72))continue;
-      let x=cx+dx,y=cy+dy;
+      if(dx*dx+dy*dy>r2||!chance(soft?.38:.72))continue;let x=cx+dx,y=cy+dy;
       if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
       const i=idx(x,y),s=forced||1+((Math.random()*state.speciesCount)|0);
+      if(clearCompetition&&speciesA[i]&&speciesA[i]!==s&&chance(.55))speciesA[i]=0;
       speciesA[i]=s;ageA[i]=1+((Math.random()*8)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=255;
     }
   }
-
-  function spark(reason='manual spark'){
-    const [x,y]=localFoodHotspot();
-    stampLife(x,y,state.sparkSize,0,true);
-    // A tiny food puncture makes the intervention resemble a tap rather than a reset.
-    for(let k=0;k<Math.max(4,state.sparkSize);k++){
-      const xx=wrapped(x+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,W),yy=wrapped(y+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,H);
-      foodA[idx(xx,yy)]=clamp(foodA[idx(xx,yy)]+.18,0,1);
+  function stampViablePattern(cx,cy,s,force=.6){
+    const p=state.profiles[s-1],birthCounts=[0,1,2,3,4,5,6,7,8].filter(n=>matchMask(p.birthMask,n));
+    const target=pick(birthCounts.length?birthCounts:[2,3]);const r=Math.max(2,Math.round(state.sparkSize*(.65+force*.55)));
+    // Different masks need different seed geometry: pairs for B2, triads for B3, dense disks for high-B rules.
+    const points=[];
+    if(target<=1){for(let k=0;k<Math.max(4,r);k++)points.push([k-r/2,Math.sin(k*1.8)*2])}
+    else if(target===2){for(let k=0;k<r*3;k++){const a=k*2.399,rr=Math.sqrt(k)*.85;points.push([Math.cos(a)*rr,Math.sin(a)*rr])}}
+    else if(target===3){for(let a=0;a<Math.PI*2;a+=Math.PI/3)points.push([Math.cos(a)*r*.45,Math.sin(a)*r*.45]);points.push([0,0],[1,0],[0,1])}
+    else{for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(dx*dx+dy*dy<r*r&&chance(.42+.035*target))points.push([dx,dy])}
+    for(const [fx,fy] of points){
+      let x=Math.round(cx+fx),y=Math.round(cy+fy);if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
+      const i=idx(x,y);if(speciesA[i]&&speciesA[i]!==s&&chance(.30+force*.48))speciesA[i]=0;
+      speciesA[i]=s;ageA[i]=1+((Math.random()*14)|0);traitA[i]=(Math.random()*256)|0;memoryA[i]=255;matterA[i]*=.55;
     }
+  }
+  function buildNursery(s,force=.65,reason='nursery'){
+    const colonies=1+Math.floor(force*3);
+    for(let c=0;c<colonies;c++){
+      const [x,y]=localFoodHotspot(s,true);const radius=Math.max(4,Math.round(state.sparkSize*(1+force)));
+      for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
+        if(dx*dx+dy*dy>radius*radius)continue;const ni=neighborIndex(x+dx,y+dy);if(ni<0)continue;
+        const falloff=1-Math.sqrt(dx*dx+dy*dy)/radius;foodA[ni]=clamp(foodA[ni]+(.18+.58*force)*falloff,0,1);matterA[ni]*=1-.25*force*falloff;
+        if(speciesA[ni]&&speciesA[ni]!==s&&chance(.06+force*.18*falloff))speciesA[ni]=0;
+      }
+      stampViablePattern(x,y,s,force);
+    }
+    const m=autoMods[s-1];m.nursery=Math.max(m.nursery,10+force*24);m.ruleAssist=Math.max(m.ruleAssist,rescueAttempts[s-1]>=2?12+force*25:0);
+    announce(reason);
+  }
+  function spark(reason='manual spark'){
+    const [x,y]=localFoodHotspot();stampLife(x,y,state.sparkSize,0,true,false);
+    for(let k=0;k<Math.max(6,state.sparkSize*2);k++){const xx=wrapped(x+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,W),yy=wrapped(y+((Math.random()*state.sparkSize*3)|0)-state.sparkSize,H);foodA[idx(xx,yy)]=clamp(foodA[idx(xx,yy)]+.14+Math.random()*.15,0,1)}
     quietClock=0;announce(reason==='manual spark'?'A fingertip disturbs the garden.':reason);
   }
-
   function pulseResources(){
-    const hits=Math.max(6,(N*(.00035+state.resourcePulse*.0022))|0);
-    for(let k=0;k<hits;k++){
-      const i=(Math.random()*N)|0;foodA[i]=clamp(foodA[i]+.12+Math.random()*.28,0,1);
+    const hits=Math.max(6,(N*(.00035+state.resourcePulse*.0026))|0);
+    for(let k=0;k<hits;k++){const i=(Math.random()*N)|0;foodA[i]=clamp(foodA[i]+.10+Math.random()*.34,0,1)}
+  }
+
+  function effectiveRuleMatch(ruleMask,nSame,nTotal,trait,mix){
+    const geneMix=clamp(mix+((trait&31)/31-.5)*.26,0,1);let n=Math.round(lerp(nSame,nTotal,geneMix));
+    const geneBand=trait>>5,bias=geneBand===0?-1:(geneBand===7?1:0);n=clamp(n+bias,0,8);return matchMask(ruleMask,n);
+  }
+  function effectiveProfile(s){
+    const p=state.profiles[s],m=autoMods[s],breath=state.autoSpark?state.ecologyWander:0;
+    const phase=wanderPhase+s*1.91;
+    return {
+      vitality:clamp(p.vitality+m.vitality+Math.sin(phase)*.055*breath,0,1),
+      aggression:clamp(p.aggression+m.aggression+Math.sin(phase*.73+2)*.06*breath,0,1),
+      foodNeed:clamp(p.foodNeed+m.foodNeed+Math.sin(phase*.51+4)*.035*breath,0,1),
+      consumption:clamp(p.consumption+m.metabolism+Math.sin(phase*.89+1)*.05*breath,0,1),
+      birthNeed:clamp(p.birthNeed+m.birth+Math.sin(phase*.67+3)*.05*breath,0,1)
+    };
+  }
+
+  function decayAutopilot(dt){
+    const decay=Math.exp(-dt/38);
+    for(const m of autoMods){
+      m.vitality*=decay;m.aggression*=decay;m.metabolism*=decay;m.birth*=decay;m.foodNeed*=decay;
+      m.nursery=Math.max(0,m.nursery-dt);m.ruleAssist=Math.max(0,m.ruleAssist-dt);
+      m.hueTarget*=Math.exp(-dt/95);m.hue=lerp(m.hue,m.hueTarget,1-Math.exp(-dt/5));
     }
-  }
-
-  function neighborIndex(x,y){
-    if(state.wrap)return idx(wrapped(x,W),wrapped(y,H));
-    if(x<0||x>=W||y<0||y>=H)return -1;
-    return idx(x,y);
-  }
-
-  function effectiveRuleMatch(ruleMask,nSame,nTotal,trait,mix,birth){
-    // Each cell's genome changes how it interprets the shared rule: kin-only ↔ crowd-aware,
-    // plus a heritable ±1 neighbor bias. This is local rule heterogeneity, not just color variation.
-    const geneMix=clamp(mix + ((trait&31)/31-.5)*.26,0,1);
-    let n=Math.round(lerp(nSame,nTotal,geneMix));
-    const geneBand=trait>>5;
-    const bias=geneBand===0?-1:(geneBand===7?1:0); // only the genomic extremes reinterpret count by one
-    n=clamp(n+bias,0,8);
-    return matchMask(ruleMask,n);
+    autoResource.growth*=decay;autoResource.diffusion*=decay;autoResource.decay*=decay;
+    autoResource.hue=lerp(autoResource.hue,autoResource.hueTarget,1-Math.exp(-dt/8));autoResource.hueTarget*=Math.exp(-dt/120);
   }
 
   function stepSimulation(dt){
-    stepCounter++;
-    const wander=state.ecologyWander;
-    wanderPhase+=dt*(.045+.12*wander);
+    stepCounter++;simElapsed+=dt;decayAutopilot(dt);
+    const wander=state.ecologyWander;wanderPhase+=dt*(.07+.18*wander);
     const ecologicalBreath=Math.sin(wanderPhase)*wander;
-    const growth=state.foodGrowth*(1+.22*ecologicalBreath);
+    const growth=state.foodGrowth*(1+.30*ecologicalBreath+autoResource.growth);
     const metabolism=state.metabolism*(1-.12*ecologicalBreath);
-    const diffusion=clamp(state.diffusion*(1+.18*Math.sin(wanderPhase*.61+2)),0,.48);
+    const diffusion=clamp(state.diffusion*(1+.22*Math.sin(wanderPhase*.61+2)+autoResource.diffusion),0,.52);
+    const foodDecay=clamp(state.foodDecay*(1+autoResource.decay),0,.2);
 
-    // Resource field: stable against speed changes because all rates are expressed per second.
+    // Food and fossil matter are independent fields. Matter barely moves; it can persist for minutes,
+    // block colonization, weather into food, and be actively excavated by adapted species.
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-      const i=idx(x,y),f=foodA[i];
-      let sum=0,count=0;
-      const near=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
-      for(const [nx,ny] of near){const ni=neighborIndex(nx,ny);if(ni>=0){sum+=foodA[ni];count++}}
-      const avg=count?sum/count:f;
-      const environmental=.5+.5*noise2D(x*.017+stepCounter*.0003,y*.021,worldSeed+17);
-      const source=growth*dt*(1-f)*(.32+.68*environmental);
-      foodB[i]=clamp(lerp(f,avg,diffusion)+source-state.foodDecay*dt*f,0,1);
+      const i=idx(x,y),f=foodA[i],rock=matterA[i];let sum=0,count=0;
+      for(const [nx,ny] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]){const ni=neighborIndex(nx,ny);if(ni>=0){sum+=foodA[ni];count++}}
+      const avg=count?sum/count:f,environmental=.5+.5*noise2D(x*.017+stepCounter*.0003,y*.021,worldSeed+17);
+      const source=Math.max(0,growth)*dt*(1-f)*(.27+.73*environmental);
+      const weather=Math.min(rock,state.matterDecay*dt*(.12+.44*f));
+      matterB[i]=clamp(rock-weather,0,1);
+      foodB[i]=clamp(lerp(f,avg,diffusion)+source-foodDecay*dt*f+weather*.72,0,1);
     }
     [foodA,foodB]=[foodB,foodA];
 
-    let alive=0,changed=0,births=0,deaths=0,foodSum=0;
-    const speciesCounts=[0,0,0,0];
-    const predationGlobal=state.predation;
-
+    let alive=0,changed=0,births=0,deaths=0,foodSum=0,matterSum=0;const speciesCounts=[0,0,0,0];
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-      const i=idx(x,y),current=speciesA[i];
-      const counts=[0,0,0,0,0];
-      let total=0;
+      const i=idx(x,y),current=speciesA[i],counts=[0,0,0,0,0];let total=0,matterNear=0;
       for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-        if(!dx&&!dy)continue;const ni=neighborIndex(x+dx,y+dy);if(ni<0)continue;const s=speciesA[ni];if(s){counts[s]++;total++}
+        if(!dx&&!dy)continue;const ni=neighborIndex(x+dx,y+dy);if(ni<0)continue;const s=speciesA[ni];if(s){counts[s]++;total++}matterNear+=matterA[ni];
       }
-      let next=0,nextAge=0,nextTrait=traitA[i],food=foodA[i];
+      let next=0,nextAge=0,nextTrait=traitA[i],food=foodA[i],rock=matterB[i];
 
       if(current){
-        const p=state.profiles[current-1],r=RULES[p.rule],same=counts[current],trait=traitA[i];
-        const predator=current===1?state.speciesCount:current-1; // cyclic predator relation
-        const enemyPressure=counts[predator]||0;
-        const prey=current===state.speciesCount?1:current+1;
-        const preyNear=counts[prey]||0;
-        const vitality=.72+p.vitality*.56;
-        const individualMetabolism=metabolism*(.76+(trait/255)*.48)/vitality;
-        const predationGain=preyNear*predationGlobal*p.aggression*.018;
-        const survivalFood=.006+individualMetabolism*.12;
-        const survivesRule=effectiveRuleMatch(r.survive,same,total,trait,p.mix,false);
-        const overrun=enemyPressure*predationGlobal*(state.profiles[predator-1]?.aggression||0) > (1.55+p.vitality*2.4+Math.random()*1.1);
-        if(survivesRule && food+predationGain>survivalFood && !overrun){
-          next=current;nextAge=Math.min(65535,ageA[i]+1);food=clamp(food-individualMetabolism*dt+predationGain,0,1);
-          if(chance(state.mutationRate*dt*.065))nextTrait=clamp(trait+((Math.random()*33)|0)-16,0,255);
-        }else{deaths++}
+        const pi=current-1,p=state.profiles[pi],eff=effectiveProfile(pi),m=autoMods[pi],same=counts[current],trait=traitA[i];
+        const predator=current===1?state.speciesCount:current-1,enemyPressure=counts[predator]||0,prey=current===state.speciesCount?1:current+1,preyNear=counts[prey]||0;
+        const vitality=.64+eff.vitality*.72,individualMetabolism=metabolism*(.04+eff.consumption*1.72)*(.82+(trait/255)*.36)/vitality;
+        const predationGain=preyNear*state.predation*eff.aggression*.020;
+        const survivalFood=Math.pow(eff.foodNeed,2.05)*(.24+metabolism*.38);
+        const age=ageA[i],anchorThreshold=lerp(130,5,p.persistence),geneAnchor=((trait*73+i*19)&255)/255;
+        const anchored=age>anchorThreshold&&geneAnchor<p.persistence;
+        let survivalMask=p.surviveMask;if(m.ruleAssist>0)survivalMask|=NURSERY_SURVIVE;
+        const survivesRule=effectiveRuleMatch(survivalMask,same,total,trait,p.mix);
+        const canStarve=anchored&&food+predationGain>survivalFood*(1-p.persistence*.995);
+        const overrun=enemyPressure*state.predation*(state.profiles[predator-1]?.aggression||0)>(1.45+eff.vitality*2.5+Math.random()*1.05+p.persistence*.7);
+        const excavation=Math.min(rock,(p.excavate*(.018+.055*same)+p.excavate*matterNear*.002)*dt);
+        if(excavation>0){rock-=excavation;food=clamp(food+excavation*(.72+.25*p.excavate),0,1)}
+        if((survivesRule||anchored)&&(food+predationGain>survivalFood||canStarve)&&!overrun){
+          next=current;nextAge=Math.min(65535,age+1);food=clamp(food-individualMetabolism*dt+predationGain,0,1);
+          if(chance(state.mutationRate*dt*.075))nextTrait=clamp(trait+((Math.random()*35)|0)-17,0,255);
+        }else{
+          deaths++;const fossil=p.fossilize*(.18+.82*Math.min(1,age/90));rock=clamp(rock+fossil,0,1);food=clamp(food+(1-p.fossilize)*(.025+.06*Math.min(1,age/70)),0,1);
+        }
       }else{
-        let winner=0,best=-1,parentTrait=128;
+        let winner=0,best=-1e9,parentTrait=128;
         for(let s=1;s<=state.speciesCount;s++){
-          const p=state.profiles[s-1],r=RULES[p.rule],same=counts[s];
-          if(!same)continue;
-          // Parent sample transmits the local genotype.
+          const pi=s-1,p=state.profiles[pi],eff=effectiveProfile(pi),m=autoMods[pi],same=counts[s];if(!same)continue;
           let sampled=128;
-          for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-            const ni=neighborIndex(x+dx,y+dy);if(ni>=0&&speciesA[ni]===s&&chance(.34))sampled=traitA[ni];
-          }
-          if(!effectiveRuleMatch(r.birth,same,total,sampled,p.mix,true))continue;
+          for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const ni=neighborIndex(x+dx,y+dy);if(ni>=0&&speciesA[ni]===s&&chance(.34))sampled=traitA[ni]}
+          let birthMask=p.birthMask;if(m.ruleAssist>0)birthMask|=NURSERY_BIRTH;
+          if(!effectiveRuleMatch(birthMask,same,total,sampled,p.mix))continue;
           const prey=s===state.speciesCount?1:s+1;
-          const score=same*.25+counts[prey]*predationGlobal*p.aggression*.32+Math.random()*.22+p.vitality*.12;
+          const rockBarrier=rock*(1-p.excavate)*1.65;
+          const score=same*.25+counts[prey]*state.predation*eff.aggression*.34+Math.random()*.24+eff.vitality*.15+(m.nursery>0?.24:0)-rockBarrier;
           if(score>best){best=score;winner=s;parentTrait=sampled}
         }
         if(winner){
-          const p=state.profiles[winner-1];
-          const need=state.birthCost*(1.18-p.vitality*.36);
-          if(food>need){
-            next=winner;nextAge=1;births++;food=clamp(food-need,0,1);
-            nextTrait=parentTrait;
+          const pi=winner-1,p=state.profiles[pi],eff=effectiveProfile(pi),m=autoMods[pi];
+          const need=state.birthCost*(.08+1.82*eff.birthNeed)*(1.12-eff.vitality*.32)*(m.nursery>0?.62:1);
+          const digPower=p.excavate*(.18+counts[winner]*.16)+(m.nursery>0?.25:0);
+          const canDig=rock<.12||digPower>rock*.72;
+          if(food>need&&canDig){
+            next=winner;nextAge=1;births++;food=clamp(food-need+Math.min(rock,digPower)*.12,0,1);rock=clamp(rock-digPower*.35,0,1);nextTrait=parentTrait;
             if(chance(state.mutationRate*.55))nextTrait=clamp(parentTrait+((Math.random()*65)|0)-32,0,255);
           }
         }
       }
 
-      speciesB[i]=next;ageB[i]=nextAge;traitB[i]=nextTrait;foodA[i]=food;
+      speciesB[i]=next;ageB[i]=nextAge;traitB[i]=nextTrait;foodA[i]=food;matterB[i]=rock;
       const mem=memoryA[i];memoryB[i]=next?255:Math.max(0,mem-(2+((1-state.afterimage)*19)|0));
-      if(next){alive++;speciesCounts[next-1]++}
-      if(next!==current)changed++;
-      foodSum+=food;
+      if(next){alive++;speciesCounts[next-1]++}if(next!==current)changed++;foodSum+=food;matterSum+=rock;
     }
+    [speciesA,speciesB]=[speciesB,speciesA];[ageA,ageB]=[ageB,ageA];[traitA,traitB]=[traitB,traitA];[memoryA,memoryB]=[memoryB,memoryA];[matterA,matterB]=[matterB,matterA];
+    const rawActivity=changed/N;metrics.activity=lerp(metrics.activity,rawActivity,.16);
+    metrics={...metrics,alive,changed,births,deaths,food:foodSum/N,matter:matterSum/N,species:speciesCounts,present:speciesCounts.filter(Boolean).length};
 
-    [speciesA,speciesB]=[speciesB,speciesA];[ageA,ageB]=[ageB,ageA];[traitA,traitB]=[traitB,traitA];[memoryA,memoryB]=[memoryB,memoryA];
-    const rawActivity=changed/N;
-    metrics.activity=lerp(metrics.activity,rawActivity,.16);
-    metrics={...metrics,alive,changed,births,deaths,food:foodSum/N,species:speciesCounts,present:speciesCounts.filter(Boolean).length};
+    pulseClock+=dt;const pulseInterval=lerp(10,1.05,state.resourcePulse);if(pulseClock>pulseInterval){pulseClock=0;pulseResources()}
+    runAutopilot(dt,speciesCounts,alive,changed);
+  }
 
-    // Rare food rain, scaled to the user's pulse control.
-    pulseClock+=dt;
-    const pulseInterval=lerp(9,1.2,state.resourcePulse);
-    if(pulseClock>pulseInterval){pulseClock=0;pulseResources()}
+  function runAutopilot(dt,speciesCounts,alive,changed){
+    const populationFloor=Math.max(6,N*.0008),dull=metrics.activity<.00038||alive<populationFloor||(previousAlive===alive&&changed===0);
+    quietClock=dull?quietClock+dt:Math.max(0,quietClock-dt*.95);previousAlive=alive;
 
-    // Autopilot watches the actual ecology, not just a timer.
-    const populationFloor=Math.max(6,N*.0009);
-    const dull=metrics.activity<.00045 || alive<populationFloor || (previousAlive===alive && changed===0);
-    quietClock=dull?quietClock+dt:Math.max(0,quietClock-dt*.85);
-    previousAlive=alive;
-
-    let missingSpecies=-1;
     for(let s=0;s<state.speciesCount;s++){
-      speciesAbsence[s]=speciesCounts[s]===0?speciesAbsence[s]+dt:0;
-      if(speciesAbsence[s]>Math.max(9,state.quietTime*1.6))missingSpecies=s;
+      const ratio=alive?speciesCounts[s]/alive:0;
+      if(speciesCounts[s]===0){speciesAbsence[s]+=dt;speciesStable[s]=0}else{speciesAbsence[s]=0;speciesStable[s]+=dt;if(ratio>.06&&speciesStable[s]>18)rescueAttempts[s]=Math.max(0,rescueAttempts[s]-dt/30)}
     }
-    if(state.autoSpark&&missingSpecies>=0){
-      const [sx,sy]=localFoodHotspot();
-      stampLife(sx,sy,Math.max(2,Math.round(state.sparkSize*.72)),missingSpecies+1,true);
-      speciesAbsence[missingSpecies]=0;quietClock=0;
-      announce(`Species ${'ABCD'[missingSpecies]} went locally extinct; a small immigrant lineage arrives.`);
-    }else if(state.autoSpark&&quietClock>state.quietTime){
-      const reason=alive<populationFloor?'The garden nearly empties; a small immigrant colony arrives.':'The ecology becomes too still; one quiet tap reopens possibility.';
-      spark(reason);
-    }
+
+    if(!state.autoSpark)return;
+    const force=state.interventionForce;
 
     driftClock+=dt;
-    if(state.ruleDrift&&state.ecologyWander>0&&driftClock>lerp(120,28,state.ecologyWander)){
+    if(state.ruleDrift&&state.ecologyWander>0&&driftClock>lerp(78,16,state.ecologyWander)){
       driftClock=0;
-      const s=(Math.random()*state.speciesCount)|0;
-      const old=state.profiles[s].rule;
-      let next=pick(SAFE_DRIFT_RULES);if(next===old)next=pick(SAFE_DRIFT_RULES);
-      state.profiles[s].rule=next;
-      if(+controls.speciesEditor.value===s)syncSpeciesEditor();
-      announce(`Species ${'ABCD'[s]} quietly adopts ${RULES[next].name}.`);
+      const s=(Math.random()*state.speciesCount)|0,p=state.profiles[s];
+      if(chance(.58)){
+        let next=pick(SAFE_DRIFT_RULES);if(next===p.rule)next=pick(SAFE_DRIFT_RULES);
+        p.rule=next;p.birthMask=RULES[next].birth;p.surviveMask=RULES[next].survive;
+        announce(`Species ${'ABCD'[s]} changes its shared law to ${RULES[next].name}.`);
+      }else{
+        const kind=chance(.5)?'birthMask':'surviveMask',n=(Math.random()*9)|0;
+        p[kind]^=(1<<n);p.rule='custom';
+        announce(`Species ${'ABCD'[s]} mutates one ${kind==='birthMask'?'birth':'survival'} condition: ${maskCode('B',p.birthMask)}/${maskCode('S',p.surviveMask)}.`);
+      }
+      if(+controls.speciesEditor.value===s)syncSpeciesEditor();persist();
     }
+
+    // Extinction rescue escalates if previous immigrants failed to establish.
+    let missing=-1,maxAbs=0;
+    for(let s=0;s<state.speciesCount;s++)if(speciesAbsence[s]>maxAbs){maxAbs=speciesAbsence[s];missing=s}
+    const rescueDelay=Math.max(3.5,state.quietTime*.62);
+    if(missing>=0&&maxAbs>rescueDelay){
+      rescueAttempts[missing]=Math.min(6,rescueAttempts[missing]+1);const escalation=clamp(force+.12*rescueAttempts[missing],0,1);
+      const m=autoMods[missing];m.vitality=clamp(m.vitality+.18+.28*escalation,-.6,.65);m.foodNeed=clamp(m.foodNeed-.18-.22*escalation,-.8,.5);m.metabolism=clamp(m.metabolism-.14-.22*escalation,-.8,.6);m.birth=clamp(m.birth-.22-.28*escalation,-.8,.7);m.aggression=clamp(m.aggression+.05*escalation,-.6,.7);
+      m.hueTarget+=(Math.random()<.5?-1:1)*(35+Math.random()*100);autoResource.growth=clamp(autoResource.growth+.12+.22*escalation,-.5,.8);autoResource.diffusion=clamp(autoResource.diffusion-.10*escalation,-.5,.5);
+      speciesAbsence[missing]=0;quietClock=0;
+      buildNursery(missing+1,escalation,`Species ${'ABCD'[missing]} fails to establish; curator opens a ${rescueAttempts[missing]>2?'protected law nursery':'resource nursery'}.`);
+      return;
+    }
+
+    // Population-ratio motion is sampled over a real 12–60 second window. Flashing without
+    // compositional change now counts as stagnation rather than "activity."
+    if(state.speciesCount>1&&(!ratioSamples.length||simElapsed-ratioSamples.at(-1).t>=1)){
+      const ratios=[0,1,2,3].map(s=>alive?speciesCounts[s]/alive:0);ratioSamples.push({t:simElapsed,ratios,alive});
+      while(ratioSamples.length&&simElapsed-ratioSamples[0].t>Math.max(75,state.balanceTime+8))ratioSamples.shift();
+    }
+    const windowSamples=state.speciesCount>1?ratioSamples.filter(v=>simElapsed-v.t<=state.balanceTime):[];
+    let movement=1,dominance=0,dominant=0,weakest=0;
+    if(windowSamples.length>=Math.max(8,state.balanceTime*.65)){
+      const current=windowSamples.at(-1).ratios,ranges=[0,0,0,0];
+      for(let s=0;s<state.speciesCount;s++){
+        let lo=1,hi=0;for(const sample of windowSamples){lo=Math.min(lo,sample.ratios[s]);hi=Math.max(hi,sample.ratios[s])}ranges[s]=hi-lo;
+      }
+      movement=ranges.slice(0,state.speciesCount).reduce((a,b)=>a+b,0);
+      dominance=Math.max(...current.slice(0,state.speciesCount));dominant=current.indexOf(dominance);
+      let weak=Infinity;for(let s=0;s<state.speciesCount;s++)if(current[s]<weak){weak=current[s];weakest=s}
+      metrics.ratioMovement=movement;metrics.dominance=dominance;
+      const ratioFrozen=movement<(.11+.05*(1-force));
+      const monopoly=dominance>.62;
+      const severe=dominance>.84&&windowSamples.length>10;
+      if((ratioFrozen&&monopoly||severe)&&simElapsed-lastBalanceAt>Math.max(8,state.balanceTime*.42)){
+        rebalanceEcology(dominant,weakest,severe?'near-monopoly':'ratio stagnation');lastBalanceAt=simElapsed;ratioSamples.length=0;return;
+      }
+    }
+
+    if(quietClock>state.quietTime){
+      const reason=alive<populationFloor?'The garden nearly empties; a mixed immigrant cluster arrives.':'The ecology becomes too still; one deliberate tap reopens possibility.';spark(reason);quietClock=0;
+    }
+  }
+
+  function rebalanceEcology(dominant,weakest,reason){
+    const f=state.interventionForce,dom=autoMods[dominant],weak=autoMods[weakest];
+    dom.vitality=clamp(dom.vitality-(.18+.34*f),-.75,.5);dom.aggression=clamp(dom.aggression-(.14+.28*f),-.7,.6);dom.metabolism=clamp(dom.metabolism+(.16+.32*f),-.6,.8);dom.birth=clamp(dom.birth+(.15+.32*f),-.6,.8);dom.foodNeed=clamp(dom.foodNeed+(.10+.24*f),-.5,.75);
+    weak.vitality=clamp(weak.vitality+(.20+.36*f),-.5,.75);weak.aggression=clamp(weak.aggression+(.04+.14*f),-.5,.7);weak.metabolism=clamp(weak.metabolism-(.16+.28*f),-.8,.6);weak.birth=clamp(weak.birth-(.20+.34*f),-.8,.6);weak.foodNeed=clamp(weak.foodNeed-(.14+.28*f),-.8,.5);
+    weak.hueTarget+=(Math.random()<.5?-1:1)*(65+Math.random()*120);dom.hueTarget+=(Math.random()<.5?-1:1)*(18+Math.random()*45);
+    autoResource.growth=clamp(autoResource.growth+.10+.20*f,-.4,.7);autoResource.diffusion=clamp(autoResource.diffusion+(Math.random()-.5)*.35*f,-.45,.55);autoResource.decay=clamp(autoResource.decay-(.05+.12*f),-.5,.6);
+    if(state.paletteDrift)autoResource.hueTarget+=(Math.random()<.5?-1:1)*(25+Math.random()*95);
+
+    // Starve a sample of dense monopoly cores and turn some of their mass into chewable geology.
+    const domSpecies=dominant+1;
+    for(let k=0;k<Math.max(30,N*.003*f);k++){
+      const i=(Math.random()*N)|0;if(speciesA[i]!==domSpecies)continue;
+      const [x,y]=coords(i);let same=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const ni=neighborIndex(x+dx,y+dy);if(ni>=0&&speciesA[ni]===domSpecies)same++}
+      if(same>=5&&chance(.24+.45*f)){foodA[i]*=.25;matterA[i]=clamp(matterA[i]+.08+.20*f,0,1);if(chance(.08+.22*f))speciesA[i]=0}
+    }
+    buildNursery(weakest+1,clamp(.65+f*.35,0,1),`The curator detects ${reason}: ${'ABCD'[dominant]} is taxed; ${'ABCD'[weakest]} receives new land, food, and a temporary niche.`);
   }
 
   function adjustedColor(hex,hueShift=0,satMul=1,valMul=1){
-    const [r,g,b]=hexToRgb(hex),[h,s,v]=rgbToHsv(r,g,b);
-    return hsvToRgb(h+hueShift,s*state.saturation*satMul,v*state.brightness*valMul);
+    const [r,g,b]=hexToRgb(hex),[h,s,v]=rgbToHsv(r,g,b);return hsvToRgb(h+hueShift,s*state.saturation*satMul,v*state.brightness*valMul);
   }
-
+  function applyOpticalFilter(rgb){
+    let [r,g,b]=rgb;
+    if(state.colorFilter==='neon'){
+      const mx=Math.max(r,g,b),boost=255/(Math.max(110,mx));r=Math.pow(clamp(r*boost/255,0,1),.72)*255;g=Math.pow(clamp(g*boost/255,0,1),.72)*255;b=Math.pow(clamp(b*boost/255,0,1),.72)*255;
+    }else if(state.colorFilter==='pastel'){
+      [r,g,b]=mixRgb([r,g,b],[255,247,250],.32);
+    }else if(state.colorFilter==='nocturne'){
+      [r,g,b]=mixRgb([r*.70,g*.74,b*.82],[8,10,28],.20);
+    }else if(state.colorFilter==='negative'){
+      r=255-r;g=255-g;b=255-b;
+    }
+    return [clamp(r,0,255),clamp(g,0,255),clamp(b,0,255)];
+  }
+  function livingColor(s,age,trait,food,x,y,now){
+    const spatial=((x/W)*72+(y/H)*43)*state.spatialHue,autoHue=Math.sin(now*.000048)*125*state.hueWander+Math.sin(now*.000013+1.7)*48*state.hueWander;
+    const geneHue=((trait-128)/128)*27,curator=autoMods[s-1].hue,resourceHue=state.paletteDrift?autoResource.hue:0;let rgb;
+    if(state.colorMode==='rgb'){
+      const phase=age*.13+x*.19+y*.23+trait*.025+now*.0014+s*1.7;
+      rgb=[127.5+127.5*Math.sin(phase),127.5+127.5*Math.sin(phase+2.094),127.5+127.5*Math.sin(phase+4.188)];
+    }else if(state.colorMode==='age'){
+      rgb=hsvToRgb(age*5.2+spatial+autoHue+curator,1*state.saturation,(.72+.28*Math.tanh(age*.04))*state.brightness);
+    }else if(state.colorMode==='resource'){
+      rgb=hsvToRgb(lerp(250,15,food)+s*47+spatial*.4+autoHue*.4+resourceHue,.92*state.saturation,(.65+.35*food)*state.brightness);
+    }else{
+      const base=adjustedColor(state.colors[s-1],autoHue+spatial+geneHue+curator+resourceHue,1,.92+Math.tanh(age*.055)*.19);
+      if(state.colorMode==='prism'){
+        const prism=hsvToRgb(age*7.5+x*.9+y*.6+autoHue+curator,1,1);rgb=mixRgb(base,prism,.42+.20*Math.sin(age*.1));
+      }else rgb=base;
+      rgb=mixRgb(rgb,hexToRgb(state.foodHigh),clamp(food*.34,0,.26));
+    }
+    return applyOpticalFilter(rgb);
+  }
   function render(now){
-    const data=imageData.data;
-    const low=hexToRgb(state.foodLow),high=hexToRgb(state.foodHigh),voidRgb=hexToRgb(state.void);
-    const autoHue=Math.sin(now*.000035)*110*state.hueWander + Math.sin(now*.000009+1.7)*35*state.hueWander;
-    state.hueOffset=autoHue;
-    let p=0;
+    const data=imageData.data,low=hexToRgb(state.foodLow),high=hexToRgb(state.foodHigh),voidRgb=hexToRgb(state.void),matterRgb=hexToRgb(state.matterColor);let p=0;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-      const i=idx(x,y),s=speciesA[i],food=foodA[i],mem=memoryA[i]/255;
-      const spatial=((x/W)*52+(y/H)*31)*state.spatialHue;
-      let rgb;
-      if(s){
-        const age=ageA[i],trait=traitA[i];
-        const ageGlow=.78+.22*Math.tanh(age*.055);
-        const geneHue=((trait-128)/128)*24;
-        rgb=adjustedColor(state.colors[s-1],autoHue+spatial+geneHue,1,.84+ageGlow*.28);
-        const nourishment=clamp(food*.5,0,.28);rgb=mixRgb(rgb,high,nourishment);
-      }else{
-        const f=Math.pow(food,.68);
-        rgb=mixRgb(voidRgb,mixRgb(low,high,f),.20+.80*f);
-        if(mem>0){
-          const ghost=adjustedColor(state.colors[(traitA[i]>>6)%state.speciesCount],autoHue+spatial,.6,.42);
-          rgb=mixRgb(rgb,ghost,mem*state.afterimage*.58);
-        }
+      const i=idx(x,y),s=speciesA[i],food=foodA[i],rock=matterA[i],mem=memoryA[i]/255;let rgb;
+      if(s)rgb=livingColor(s,ageA[i],traitA[i],food,x,y,now);
+      else{
+        const f=Math.pow(food,.68);rgb=mixRgb(voidRgb,mixRgb(low,high,f),.18+.82*f);
+        if(rock>0){const grain=.82+.18*noise2D(x*.63,y*.71,worldSeed+31);rgb=mixRgb(rgb,adjustedColor(state.matterColor,autoResource.hue*.25,.55,.45+.55*grain),Math.pow(rock,.66)*.92)}
+        if(mem>0){const ghost=livingColor(1+(traitA[i]>>6)%state.speciesCount,1,traitA[i],food,x,y,now);rgb=mixRgb(rgb,ghost,mem*state.afterimage*.52)}
+        rgb=applyOpticalFilter(rgb);
       }
       data[p++]=rgb[0];data[p++]=rgb[1];data[p++]=rgb[2];data[p++]=255;
     }
@@ -622,123 +881,94 @@
   }
 
   function updateHud(now){
-    frames++;if(now-lastHud<500)return;
-    fps=Math.round(frames*1000/(now-lastHud||1));frames=0;lastHud=now;
-    const popPct=(metrics.alive/N*100).toFixed(1),act=(metrics.activity*100).toFixed(2),food=(metrics.food*100).toFixed(0);
+    frames++;if(now-lastHud<500)return;fps=Math.round(frames*1000/(now-lastHud||1));frames=0;lastHud=now;
+    const popPct=(metrics.alive/N*100).toFixed(1),act=(metrics.activity*100).toFixed(2),food=(metrics.food*100).toFixed(0),rock=(metrics.matter*100).toFixed(0);
     const mix=metrics.species.slice(0,state.speciesCount).map((n,i)=>`${'ABCD'[i]} ${metrics.alive?Math.round(n/metrics.alive*100):0}%`).join(' · ');
-    hud.textContent=`${fps} FPS · ${W}×${H} · life ${popPct}% · activity ${act}% · food ${food}% · ${mix}${state.autoSpark?` · watchdog ${Math.max(0,state.quietTime-quietClock).toFixed(1)}s`:''}`;
+    hud.textContent=`${fps} FPS · ${W}×${H} · life ${popPct}% · activity ${act}% · food ${food}% · fossil ${rock}% · ${mix}${state.autoSpark?` · ratio motion ${state.speciesCount>1?(metrics.ratioMovement*100).toFixed(0)+'%':'n/a'}`:''}`;
+    updateAutoBiasReadout();
   }
-
   function frame(now){
     const dt=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
-    if(running){
-      accumulator+=dt;const step=1/state.speed;let guard=0;
-      while(accumulator>=step&&guard++<8){stepSimulation(step);accumulator-=step}
-    }
+    if(running){accumulator+=dt;const step=1/state.speed;let guard=0;while(accumulator>=step&&guard++<8){stepSimulation(step);accumulator-=step}}
     render(now);updateHud(now);requestAnimationFrame(frame);
   }
+  function announce(text){toast.textContent=text;toast.classList.add('show');clearTimeout(announce.timer);announce.timer=setTimeout(()=>toast.classList.remove('show'),3100)}
+  function togglePlay(){running=!running;controls.play.textContent=running?'⏸ Pause':'▶ Play';controls.play.classList.toggle('active',!running)}
 
-  function announce(text){
-    eventText=text;toast.textContent=text;toast.classList.add('show');
-    clearTimeout(announce.timer);announce.timer=setTimeout(()=>toast.classList.remove('show'),2600);
+  function setWorldValues(w){
+    controls.density.value=clamp(w.density+((Math.random()*7)|0)-3,2,52);controls.foodAbundance.value=clamp(w.food+((Math.random()*11)|0)-5,0,100);controls.foodGrowth.value=clamp(w.growth+((Math.random()*13)|0)-6,0,100);
+    controls.diffusion.value=clamp(w.diffusion+((Math.random()*13)|0)-6,0,100);controls.foodDecay.value=clamp(w.decay+((Math.random()*9)|0)-4,0,100);controls.metabolism.value=clamp(w.metabolism+((Math.random()*13)|0)-6,0,100);
+    controls.birthCost.value=clamp(w.birth+((Math.random()*13)|0)-6,0,100);controls.predation.value=clamp(w.predation+((Math.random()*13)|0)-6,0,100);controls.resourcePulse.value=clamp(w.pulse+((Math.random()*13)|0)-6,0,100);
+    controls.matterDecay.value=clamp(w.matter+((Math.random()*9)|0)-4,0,100);controls.afterimage.value=clamp(w.afterimage+((Math.random()*13)|0)-6,0,100);controls.speed.value=clamp(w.speed+((Math.random()*7)|0)-3,4,50);controls.cellSize.value=clamp(w.cell+((Math.random()*3)|0)-1,2,9);
   }
-
-  function togglePlay(){running=!running;controls.play.textContent=running?'⏸ Pause':'▶ Play';controls.play.classList.toggle('active',!running);}
-
   function newReality(){
-    const preset=pick(Object.keys(PRESETS));controls.ecologyPreset.value=preset;
-    applyPreset(preset,false);
-    controls.foodAbundance.value=40+((Math.random()*46)|0);controls.foodGrowth.value=25+((Math.random()*46)|0);controls.diffusion.value=12+((Math.random()*56)|0);
-    controls.foodDecay.value=(Math.random()*22)|0;controls.metabolism.value=24+((Math.random()*38)|0);controls.birthCost.value=20+((Math.random()*42)|0);
-    controls.resourcePulse.value=10+((Math.random()*52)|0);controls.ecologyWander.value=8+((Math.random()*48)|0);controls.hueWander.value=10+((Math.random()*70)|0);controls.spatialHue.value=(Math.random()*70)|0;
-    mapControls();seedFoodField();randomizeLife(state.density);spark('A fresh reality snaps into coherence.');
+    const candidates=REALITIES.filter(r=>r.key!==lastRealityKey),reality=pick(candidates);lastRealityKey=reality.key;controls.ecologyPreset.value='custom';
+    const roles=reality.roles;controls.speciesCount.value=roles.length;setWorldValues(reality.world);
+    state.profiles=roles.map(role=>typeof ROLES[role]==='function'?ROLES[role]():makeProfile(role));while(state.profiles.length<4)state.profiles.push(ROLES.colonizer());
+    // A quarter of generated species receives a direct custom B/S mutation, so New Reality explores
+    // the modular rule space rather than just cycling a fixed dropdown.
+    for(let i=0;i<roles.length;i++)if(chance(.28)){
+      const p=state.profiles[i],b=[1,2,3,4,5,6,7].filter(()=>chance(.22+.12*Math.random())),sv=[0,1,2,3,4,5,6,7,8].filter(()=>chance(.28+.18*p.persistence));
+      p.birthMask=mask(b.length?b:[2,3]);p.surviveMask=mask(sv);p.rule='custom';
+    }
+    controls.palettePreset.value=reality.palette;applyPalette(reality.palette);controls.colorMode.value=reality.mode;controls.colorFilter.value=reality.filter;
+    controls.ecologyWander.value=20+((Math.random()*66)|0);controls.hueWander.value=18+((Math.random()*80)|0);controls.spatialHue.value=(Math.random()*100)|0;controls.interventionForce.value=55+((Math.random()*42)|0);controls.balanceTime.value=18+((Math.random()*24)|0);
+    mapControls();syncSpeciesEditor();resizeGrid(false);seedFoodField();randomizeLife(state.density);
+    // Fossil realities begin with a few ancient deposits so geological behavior is visible immediately.
+    if(roles.some(r=>['perennial','reef','crystal','lichen','excavator'].includes(r))){for(let k=0;k<N*.015;k++){const i=(Math.random()*N)|0;matterA[i]=Math.random()*.8}}
+    spark(`${reality.name}: a radically different ecology snaps into coherence.`);
   }
 
-  function savePng(){
-    const a=document.createElement('a');a.download=`living-ecology-${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click();
-  }
-
+  function savePng(){const a=document.createElement('a');a.download=`living-ecology-${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click()}
   function persist(){
-    try{
-      localStorage.setItem('livingEcologyV2',JSON.stringify({
-        values:Object.fromEntries(Object.entries(controls).filter(([,el])=>el&&('value'in el)).map(([k,el])=>[k,el.value])),
-        checks:Object.fromEntries(['wrapEdges','autoSpark','ruleDrift'].map(k=>[k,controls[k].checked])),profiles:state.profiles
-      }));
-    }catch(_){ }
+    try{localStorage.setItem('livingEcologyV3',JSON.stringify({values:Object.fromEntries(Object.entries(controls).filter(([,el])=>el&&('value'in el)).map(([k,el])=>[k,el.value])),checks:Object.fromEntries(['wrapEdges','autoSpark','ruleDrift','paletteDrift'].map(k=>[k,controls[k].checked])),profiles:state.profiles}))}catch(_){ }
   }
-
   function restore(){
     try{
-      const saved=JSON.parse(localStorage.getItem('livingEcologyV2'));if(!saved)return false;
-      Object.entries(saved.values||{}).forEach(([k,v])=>{if(controls[k])controls[k].value=v});
-      Object.entries(saved.checks||{}).forEach(([k,v])=>{if(controls[k])controls[k].checked=v});
-      if(saved.profiles?.length===4)state.profiles=saved.profiles;
+      const rawV3=localStorage.getItem('livingEcologyV3'),saved=JSON.parse(rawV3||localStorage.getItem('livingEcologyV2'));if(!saved)return false;
+      Object.entries(saved.values||{}).forEach(([k,v])=>{if(controls[k])controls[k].value=v});Object.entries(saved.checks||{}).forEach(([k,v])=>{if(controls[k])controls[k].checked=v});
+      if(saved.profiles?.length===4)state.profiles=saved.profiles.map(normalizeProfile);
+      // V2 had no geology or optical-treatment controls. Derive sane additions from its saved palette.
+      if(!rawV3){
+        const pal=PALETTES[controls.palettePreset.value]||PALETTES.jelly;
+        controls.matterColor.value=pal.matter;controls.colorMode.value=pal.mode||'species';controls.colorFilter.value=pal.filter||'none';controls.matterDecay.value=8;controls.balanceTime.value=28;controls.interventionForce.value=68;controls.paletteDrift.checked=true;
+      }
       return true;
     }catch(_){return false}
   }
 
   // ---------- interaction ----------
   let drawing=false;
-  function pointerCell(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.clientX-r.left)/r.width*W),Math.floor((e.clientY-r.top)/r.height*H)]}
+  function pointerCell(e){const r=canvas.getBoundingClientRect();return[Math.floor((e.clientX-r.left)/r.width*W),Math.floor((e.clientY-r.top)/r.height*H)]}
   function paint(e){
     const [cx,cy]=pointerCell(e),r=state.brushSize,r2=r*r;
     for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
-      if(dx*dx+dy*dy>r2)continue;let x=cx+dx,y=cy+dy;
-      if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
-      const i=idx(x,y);
-      if(state.brushMode==='life'){
-        const s=state.brushSpecies||1+((Math.random()*state.speciesCount)|0);speciesA[i]=s;ageA[i]=1;traitA[i]=(Math.random()*256)|0;memoryA[i]=255;
-      }else if(state.brushMode==='food')foodA[i]=clamp(foodA[i]+.16,0,1);
-      else if(state.brushMode==='eraseLife'){speciesA[i]=0;ageA[i]=0}
-      else foodA[i]=clamp(foodA[i]-.20,0,1);
+      if(dx*dx+dy*dy>r2)continue;let x=cx+dx,y=cy+dy;if(state.wrap){x=wrapped(x,W);y=wrapped(y,H)}else if(x<0||x>=W||y<0||y>=H)continue;
+      const i=idx(x,y);if(state.brushMode==='life'){const s=state.brushSpecies||1+((Math.random()*state.speciesCount)|0);speciesA[i]=s;ageA[i]=1;traitA[i]=(Math.random()*256)|0;memoryA[i]=255}else if(state.brushMode==='food')foodA[i]=clamp(foodA[i]+.16,0,1);else if(state.brushMode==='eraseLife'){speciesA[i]=0;ageA[i]=0}else foodA[i]=clamp(foodA[i]-.20,0,1);
     }
   }
-  canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture?.(e.pointerId);paint(e)});
-  canvas.addEventListener('pointermove',e=>{if(drawing)paint(e)});
-  window.addEventListener('pointerup',()=>drawing=false);
-  window.addEventListener('pointercancel',()=>drawing=false);
+  canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture?.(e.pointerId);paint(e)});canvas.addEventListener('pointermove',e=>{if(drawing)paint(e)});window.addEventListener('pointerup',()=>drawing=false);window.addEventListener('pointercancel',()=>drawing=false);
 
-  controls.play.addEventListener('click',togglePlay);
-  controls.spark.addEventListener('click',()=>spark());
-  controls.newReality.addEventListener('click',newReality);
-  controls.reseedFood.addEventListener('click',seedFoodField);
-  controls.clearLife.addEventListener('click',clearLife);
-  controls.savePng.addEventListener('click',savePng);
-  controls.reset.addEventListener('click',()=>{localStorage.removeItem('livingEcologyV2');location.reload()});
-  controls.ecologyPreset.addEventListener('change',()=>applyPreset(controls.ecologyPreset.value));
-  controls.palettePreset.addEventListener('change',()=>{state.palette=controls.palettePreset.value;applyPalette(controls.palettePreset.value)});
-  controls.speciesEditor.addEventListener('change',syncSpeciesEditor);
-  ['ruleFamily','speciesColor','socialMix','aggression','vitality'].forEach(id=>controls[id].addEventListener('input',mapSpeciesEditor));
-  ['color0','color1','color2','color3','foodLow','foodHigh','voidColor'].forEach(id=>controls[id].addEventListener('input',()=>{
-    controls.palettePreset.value='custom';state.palette='custom';
-    if(/^color[0-3]$/.test(id) && +controls.speciesEditor.value===+id.slice(-1))controls.speciesColor.value=controls[id].value;
-    mapControls();
-  }));
+  controls.play.addEventListener('click',togglePlay);controls.spark.addEventListener('click',()=>spark());controls.newReality.addEventListener('click',newReality);controls.reseedFood.addEventListener('click',seedFoodField);controls.clearLife.addEventListener('click',clearLife);controls.savePng.addEventListener('click',savePng);
+  controls.reset.addEventListener('click',()=>{localStorage.removeItem('livingEcologyV3');localStorage.removeItem('livingEcologyV2');location.reload()});
+  controls.ecologyPreset.addEventListener('change',()=>applyPreset(controls.ecologyPreset.value));controls.palettePreset.addEventListener('change',()=>{state.palette=controls.palettePreset.value;applyPalette(controls.palettePreset.value)});controls.speciesEditor.addEventListener('change',syncSpeciesEditor);
+  ['ruleFamily','speciesColor','socialMix','aggression','vitality','speciesFoodNeed','speciesConsumption','speciesBirthNeed','persistence','fossilize','excavate'].forEach(id=>controls[id].addEventListener('input',mapSpeciesEditor));
+  ['color0','color1','color2','color3','foodLow','foodHigh','matterColor','voidColor'].forEach(id=>controls[id].addEventListener('input',()=>{controls.palettePreset.value='custom';state.palette='custom';if(/^color[0-3]$/.test(id)&&+controls.speciesEditor.value===+id.slice(-1))controls.speciesColor.value=controls[id].value;mapControls()}));
   const resizeSensitive=new Set(['cellSize']);
   Object.entries(controls).forEach(([id,el])=>{
-    if(!el||['ruleFamily','speciesColor','socialMix','aggression','vitality','color0','color1','color2','color3','foodLow','foodHigh','voidColor','ecologyPreset','palettePreset','speciesEditor'].includes(id))return;
+    if(!el||['ruleFamily','speciesColor','socialMix','aggression','vitality','speciesFoodNeed','speciesConsumption','speciesBirthNeed','persistence','fossilize','excavate','color0','color1','color2','color3','foodLow','foodHigh','matterColor','voidColor','ecologyPreset','palettePreset','speciesEditor','birthGrid','surviveGrid'].includes(id))return;
     if(el.matches?.('input,select'))el.addEventListener('input',()=>{mapControls();if(resizeSensitive.has(id))resizeGrid(true)});
   });
-  controls.mobileControls.addEventListener('click',()=>document.body.classList.toggle('controls-open'));
-  stageWrap.addEventListener('pointerdown',e=>{if(document.body.classList.contains('controls-open')&&e.target!==canvas)document.body.classList.remove('controls-open')});
-  window.addEventListener('keydown',e=>{
-    if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
-    if(e.code==='Space'){e.preventDefault();togglePlay()}else if(e.key==='r'||e.key==='R')spark();else if(e.key==='n'||e.key==='N')newReality();else if(e.key==='f'||e.key==='F')seedFoodField();else if(e.key==='c'||e.key==='C')clearLife();
-  });
+  controls.mobileControls.addEventListener('click',()=>document.body.classList.toggle('controls-open'));stageWrap.addEventListener('pointerdown',e=>{if(document.body.classList.contains('controls-open')&&e.target!==canvas)document.body.classList.remove('controls-open')});
+  window.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.code==='Space'){e.preventDefault();togglePlay()}else if(e.key==='r'||e.key==='R')spark();else if(e.key==='n'||e.key==='N')newReality();else if(e.key==='f'||e.key==='F')seedFoodField();else if(e.key==='c'||e.key==='C')clearLife()});
   window.addEventListener('resize',()=>resizeGrid(true));
 
   // ---------- init ----------
-  const restored=restore();
-  if(!restored){
-    const pal=PALETTES.jelly;pal.species.forEach((c,i)=>controls['color'+i].value=c);controls.foodLow.value=pal.foodLow;controls.foodHigh.value=pal.foodHigh;controls.voidColor.value=pal.void;
-  }
-  mapControls();
-  if(restored)syncSpeciesEditor();else applyPreset('polyphony',false);
-  resizeGrid(false);
-  seedFoodField();randomizeLife(state.density);
-  announce('The garden wakes and begins feeding.');
-  requestAnimationFrame(frame);
+  buildNeighborGrids();const restored=restore();
+  if(!restored){const pal=PALETTES.jelly;pal.species.forEach((c,i)=>controls['color'+i].value=c);controls.foodLow.value=pal.foodLow;controls.foodHigh.value=pal.foodHigh;controls.matterColor.value=pal.matter;controls.voidColor.value=pal.void;controls.colorMode.value=pal.mode;controls.colorFilter.value=pal.filter}
+  mapControls();if(restored)syncSpeciesEditor();else applyPreset('polyphony',false);resizeGrid(false);seedFoodField();randomizeLife(state.density);announce('The garden wakes: organisms, food, and geological memory begin negotiating.');requestAnimationFrame(frame);
 })();
+
 </script>
 </body>
 </html>
